@@ -13,7 +13,7 @@ describe('auto-trace.js', () => {
 			autoTrace.asyncStacktrace(callback)('non-error');
 			expect(callback).toHaveBeenCalledWith(jasmine.any(Error));
 		});
-		it('should call callback withou wrapping errors', () => {
+		it('should call callback withoutwrapping errors', () => {
 			const callback = jasmine.createSpy('callback');
 			const err = new Error('error');
 			autoTrace.asyncStacktrace(callback)(err);
@@ -104,7 +104,7 @@ describe('auto-trace.js', () => {
 		it('should wrap non-errors in errors and throw', () => {
 			expect( () => autoTrace.throwSyncStacktrace('non-error') ).toThrow(jasmine.any(Error));
 		});
-		it('should throw withou re-warping errors', () => {
+		it('should throw withoutre-warping errors', () => {
 			const err = new Error('error');
 			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(err);
 		});
