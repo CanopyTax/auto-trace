@@ -123,8 +123,8 @@ describe('auto-trace.js', () => {
 	});
 
 	describe('withoutStacktrace', () => {
-		it('should create a new error where none is given', () => {
-			expect(autoTrace.withoutStacktrace()).toEqual(jasmine.any(Error));
+		it('should return undefined when no error is given', () => {
+			expect(autoTrace.withoutStacktrace()).toEqual(undefined);
 		});
 		it('should return non-errors untouched', () => {
 			const str = 'non-error';

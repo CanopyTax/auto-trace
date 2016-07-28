@@ -10,7 +10,7 @@ export function addGlobalMiddleware(middlewareFn) {
 }
 
 /**
- * Wraps rawError in an Error object (if typeOf rawError =! Error) using the async stacktrace
+ * Wraps rawError in an Error object (if typeOf rawError != Error) using the async stacktrace
  * Calls globalMiddleware and extraMiddleware functions on rawError before wrapping in Error object
  * In most cases the async stacktrace is most useful - it contains the stacktrace before switching context to caller timeout
  *
@@ -22,14 +22,14 @@ export function asyncStacktrace(callback = ()=>{}, ...extraMiddlewares) {
 	const stacktraceErr = new Error();
 
 	return (rawError) => {
-		const err = rawError ? rawError : new Error();
+		const err = rawError || new Error()
 		const middlewareErr = executeMiddleware(err, extraMiddlewares);
 		callback(wrapObjectWithError(middlewareErr, stacktraceErr));
 	};	
 }
 
 /**
- * Wraps rawError in an Error object (if typeOf rawError =! Error) using the async stacktrace
+ * Wraps rawError in an Error object (if typeOf rawError != Error) using the async stacktrace
  * Calls globalMiddleware and extraMiddleware functions on rawError before wrapping in Error object 
  * Behaves exactly as asyncStacktrace, but throws the error object instead of returning.
  * In most cases the async stacktrace is most useful - it contains the stacktrace before switching context to caller timeout 
@@ -42,14 +42,14 @@ export function throwAsyncStacktrace(...extraMiddlewares) {
 	const stacktraceErr = new Error();
 
 	return (rawError) => {
-		const err = rawError ? rawError : new Error();
+		const err = rawError || new Error()
 		const middlewareErr = executeMiddleware(err, extraMiddlewares);
 		throw wrapObjectWithError(middlewareErr, stacktraceErr);
 	};
 }
 
 /**
- * Wraps rawError in an Error object (if typeOf rawError =! Error) using the defualt stacktrace
+ * Wraps rawError in an Error object (if typeOf rawError != Error) using the default stacktrace
  * Calls globalMiddleware and extraMiddleware functions on rawError before wrapping in Error object
  * sync stacktrace contains the stacktrace afer switching context to caller timeout 
  *
@@ -58,13 +58,13 @@ export function throwAsyncStacktrace(...extraMiddlewares) {
  * @returns {Error} 
  */
 export function syncStacktrace(rawError, ...extraMiddlewares){
-	const err = rawError ? rawError : new Error();
+	const err = rawError || new Error();
 	const middlewareErr = executeMiddleware(err, extraMiddlewares);
 	return wrapObjectWithError(middlewareErr);
 }
 
 /**
- * Wraps rawError in an Error object (if typeOf rawError =! Error) using the defualt stacktrace
+ * Wraps rawError in an Error object (if typeOf rawError != Error) using the default stacktrace
  * Calls globalMiddleware and extraMiddleware functions on rawError before wrapping in Error object 
  * Behaves exactly as syncStacktrace, but throws the error object instead of returning.
  * sync stacktrace contains the stacktrace afer switching context to caller timeout 
@@ -86,14 +86,13 @@ export function throwSyncStacktrace(rawError, ...extraMiddlewares){
  * @returns {Object} 
  */
 export function withoutStacktrace(rawError, ...extraMiddlewares){
-	const err = rawError ? rawError : new Error();
-	const middlewareErr = executeMiddleware(err, extraMiddlewares);
+	const middlewareErr = executeMiddleware(rawError, extraMiddlewares);
 	return middlewareErr;
 }
 
 
 /**
- * Wraps err in an Error object (if typeOf rawError =! Error)
+ * Wraps err in an Error object (if typeOf rawError != Error)
  * 
  * @param {Object} [err] 
  * @param {Error}  [stacktraceErr] - Optional error containing the desired stacktrace
