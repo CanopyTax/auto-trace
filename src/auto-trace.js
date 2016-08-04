@@ -100,7 +100,9 @@ export function withoutStacktrace(rawError, ...extraMiddlewares){
  */
 function wrapObjectWithError(err, stacktraceErr) {
 	if (err instanceof Error){
-		return err;
+		const errOut = stacktraceErr || err;
+		errOut.message = err.message;
+		return errOut;
 	} else {
 		const result = stacktraceErr || new Error();
 		try {
