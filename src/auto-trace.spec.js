@@ -77,7 +77,9 @@ describe('auto-trace.js', () => {
 			expect(autoTrace.syncStacktrace()).toEqual(jasmine.any(Error));
 		});
 		it('should wraps non-errors in errors', () => {
-			expect(autoTrace.syncStacktrace('non-error')).toEqual(jasmine.any(Error));
+			const result = autoTrace.syncStacktrace('non-error');
+			expect(result).toEqual(jasmine.any(Error));
+			expect(result.message).toEqual('non-error');
 		});
 		it('should not re-warp errors', () => {
 			const err = new Error('error');
