@@ -1,3 +1,4 @@
+import { wrapObjectWithError } from './auto-trace.helper.js';
 const globalMiddlewares = [];
 
 /**
@@ -88,33 +89,6 @@ export function throwSyncStacktrace(rawError, ...extraMiddlewares){
 export function withoutStacktrace(rawError, ...extraMiddlewares){
 	const middlewareErr = executeMiddleware(rawError, extraMiddlewares);
 	return middlewareErr;
-}
-
-
-/**
- * Wraps err in an Error object (if typeOf rawError != Error)
- * 
- * @param {Object} [err] 
- * @param {Error}  [stacktraceErr] - Optional error containing the desired stacktrace
- * @returns {Error} with stacktrace from stacktraceErr (if provided)
- */
-function wrapObjectWithError(err, stacktraceErr) {
-	if (err instanceof Error){
-		const errOut = stacktraceErr || err;
-		errOut.message = err.message;
-		return errOut;
-	} else {
-		const result = stacktraceErr || new Error();
-		try {
-			result.message = JSON.stringify(err);
-		} 
-		catch (ex) {
-			console.warn('auto-trace: You are trying to throw something that cannot be stringified', ex);
-			result.message = err;
-		}
-
-		return result;
-	}
 }
 
 /**
