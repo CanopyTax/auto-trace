@@ -1,11 +1,11 @@
 # auto-trace
 A library that fixes all your stack trace problems.
 
-This library helps transfrom garbage errors into beatiful objects filled with insight and understanding. This is especailly useful for apps that use an error reporting service such as bugsnag or sentry. 
+This library helps transfrom garbage errors into beatiful objects filled with insight and understanding. This is especailly useful for apps that use an error reporting service such as bugsnag or sentry.
 
 - Provide a meaningful Stack Trace (for optimum error blameage)
 - Prevent iresponsible throwing of Non-Error objects
-- Attach extra context to errors 
+- Attach extra context to errors
 - Encourage a consistent pattern for error handling
 
 Resource File
@@ -23,12 +23,12 @@ return observable
   .catch(throwAsyncStacktrace(extraContext))
 ```
 
-## Error Lifecycle 
+## Error Lifecycle
 There are two parts to the error lifecycle
 - Error Created `new Error()`
 - Error Thrown `throw err`
 
-These events do not always occur at the same time. $http is an example of this. Since $http makes an async request, an error stacktrace will contain the call stack of the invoker as the request comes in (this is the syncStacktrace). Often the more usefull stacktrace is the call stack as the request went out `Controller->Service->Resource` (this is the asyncStacktrace). 
+These events do not always occur at the same time. $http is an example of this. Since $http makes an async request, an error stacktrace will contain the call stack of the invoker as the request comes in (this is the syncStacktrace). Often the more usefull stacktrace is the call stack as the request went out `Controller->Service->Resource` (this is the asyncStacktrace).
 
 # Middleware
 Looking for more useful information about your errors? Wish you had the data from both parts of the error lifecycle. Look no further! Middlewares allow you to create higher order functions that will execute in both lifecycle contexts.
@@ -61,5 +61,5 @@ This will create Error: `{message: 'original error message - time to fail: 10s',
 addGlobalMiddleware(fn);
 ```
 
-##installation 
+##installation
 `npm install auto-trace`
