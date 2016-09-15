@@ -3,10 +3,10 @@ A library that fixes all your stack trace problems.
 
 This library helps transfrom garbage errors into beatiful objects filled with insight and understanding. This is especailly useful for apps that use an error reporting service such as bugsnag or sentry. 
 
-- Provides a meaningful Stack Trace (for optimum error blameage)
+- Provide a meaningful Stack Trace (for optimum error blameage)
 - Prevent iresponsible throwing of Non-Error objects
-- Attaches extra context to errors 
-- Encourages a consistent pattern for error handling
+- Attach extra context to errors 
+- Encourage a consistent pattern for error handling
 
 Resource File
 ```js

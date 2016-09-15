@@ -1,5 +1,5 @@
 import { wrapObjectWithError } from './auto-trace.helper.js';
-const globalMiddlewares = [];
+let globalMiddlewares = [];
 
 /**
  * Adds a middleware function that will be called on all errors before being handled by auto-trace
@@ -8,6 +8,10 @@ const globalMiddlewares = [];
  */
 export function addGlobalMiddleware(middlewareFn) {
 	globalMiddlewares.push(middlewareFn)
+}
+
+export function clearGlobalMiddlewares(){
+	globalMiddlewares = [];
 }
 
 /**
@@ -19,13 +23,14 @@ export function addGlobalMiddleware(middlewareFn) {
  * @param {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on rawError before being handled
  * @returns {Error} 
  */
-export function asyncStacktrace(callback = ()=>{}, ...extraMiddlewares) {
-	const stacktraceErr = new Error();
+export function asyncStacktrace(callback = ()=>{}) {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
-		const err = rawError || new Error()
-		const middlewareErr = executeMiddleware(err, extraMiddlewares);
-		callback(wrapObjectWithError(middlewareErr, stacktraceErr));
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		callback(wrapObjectWithError(middlewareErr, asyncStacktraceErr));
 	};	
 }
 
@@ -39,13 +44,14 @@ export function asyncStacktrace(callback = ()=>{}, ...extraMiddlewares) {
  * @param {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on rawError before being handled
  * @throws {Error} 
  */
-export function throwAsyncStacktrace(...extraMiddlewares) {
-	const stacktraceErr = new Error();
-
+export function throwAsyncStacktrace() {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
+	
 	return (rawError) => {
-		const err = rawError || new Error()
-		const middlewareErr = executeMiddleware(err, extraMiddlewares);
-		throw wrapObjectWithError(middlewareErr, stacktraceErr);
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		throw wrapObjectWithError(middlewareErr, asyncStacktraceErr);
 	};
 }
 
@@ -58,10 +64,15 @@ export function throwAsyncStacktrace(...extraMiddlewares) {
  * @param {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on rawError before being handled
  * @returns {Error} 
  */
-export function syncStacktrace(rawError, ...extraMiddlewares){
-	const err = rawError || new Error();
-	const middlewareErr = executeMiddleware(err, extraMiddlewares);
-	return wrapObjectWithError(middlewareErr);
+export function syncStacktrace(callback = ()=>{}) {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
+	
+	return (rawError) => {
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		callback(wrapObjectWithError(middlewareErr, syncErr));
+	};
 }
 
 /**
@@ -74,34 +85,72 @@ export function syncStacktrace(rawError, ...extraMiddlewares){
  * @param {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on rawError before being handled
  * @throws {Error} 
  */
-export function throwSyncStacktrace(rawError, ...extraMiddlewares){
-	throw syncStacktrace(rawError, ...extraMiddlewares);
+export function throwSyncStacktrace() {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
+	
+	return (rawError) => {
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		throw wrapObjectWithError(middlewareErr, syncErr);
+	};
 }
 
 /**
  * Calls globalMiddleware and extraMiddleware functions on rawError
- * Does not create a stacktrace nor will it wrap rawError in Error object
+ * Does not create a stacktrace
  *
  * @param {Object}   [rawError] 
  * @param {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on rawError
  * @returns {Object} 
  */
-export function withoutStacktrace(rawError, ...extraMiddlewares){
-	const middlewareErr = executeMiddleware(rawError, extraMiddlewares);
-	return middlewareErr;
+export function withoutStacktrace(callback = ()=>{}) {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
+	
+	return (rawError) => {
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		callback(wrapObjectWithError(middlewareErr));
+	};
+}
+
+export function throwWithoutStacktrace() {
+	const asyncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
+	
+	return (rawError) => {
+		const syncErr = rawError || new Error()
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr);
+		throw wrapObjectWithError(middlewareErr);
+	};
 }
 
 /**
  * Calls extraMiddlewares and extraMiddlewares on ogErr
  * 
  * @param   {Object} ogErr
- * @param   {function (Object err) => Object newErr } [extraMiddlewares] - middleware function(s) that will be called on ogErr
- * @returns {Object} 
+ * @returns  Array of Functions 
  */
-function executeMiddleware(ogErr, extraMiddlewares) {
+function executeAsyncMiddleware(ogErr) {
 	return globalMiddlewares
-		.concat(extraMiddlewares)
-		.reduce((err, middleware) => {
-			return middleware(err)
-		}, ogErr);
+		.map((middleware) => {
+			return middleware(ogErr)
+		});
+}
+
+/**
+ * Should this reduce them all? We're mutating the error?
+ * @param  {[type]} middlewares [description]
+ * @param  {[type]} ogErr       [description]
+ * @return {[type]}             [description]
+ */
+function executeSyncMiddleware(middlewares, ogErr) {
+	return middlewares.reduce( (err, middleware) => {
+		if(typeof middleware === 'function'){
+			return middleware(err); 
+		} else {
+			throw new Error("the middleware passed to auto-trace did not return a function, see docs for auto-trace middelware https://github.com/CanopyTax/auto-trace/blob/master/README.md");
+		}
+	}, ogErr);
 }
