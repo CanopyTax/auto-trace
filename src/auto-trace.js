@@ -10,7 +10,7 @@ export function addGlobalMiddleware(middlewareFn) {
 	globalMiddlewares.push(middlewareFn)
 }
 
-export function clearGlobalMiddlewares(){
+export function removeAllGlobalMiddlewares(){
 	globalMiddlewares = [];
 }
 
