@@ -13,7 +13,7 @@ describe('auto-trace.js', () => {
 		spyOn(foo, 'middlewareSpy').and.callThrough();
 
 		middlewareFun = (asyncErr) => foo.middlewareSpy.bind(null, asyncErr);
-		autoTrace.clearGlobalMiddlewares();
+		autoTrace.removeAllGlobalMiddlewares();
 		autoTrace.addGlobalMiddleware(middlewareFun);
 	});
 
@@ -49,7 +49,7 @@ describe('auto-trace.js', () => {
 					return syncErr;
 				}
 			}
-			autoTrace.clearGlobalMiddlewares();	
+			autoTrace.removeAllGlobalMiddlewares();
 			autoTrace.addGlobalMiddleware(middlewareFun);
 
 			autoTrace.asyncStacktrace(callbackSpy)(err);
@@ -89,7 +89,7 @@ describe('auto-trace.js', () => {
 					return syncErr;
 				}
 			}
-			autoTrace.clearGlobalMiddlewares();	
+			autoTrace.removeAllGlobalMiddlewares();
 			autoTrace.addGlobalMiddleware(middlewareFun);
 
 			autoTrace.throwAsyncStacktrace()(err);

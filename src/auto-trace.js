@@ -141,9 +141,9 @@ function executeAsyncMiddleware(ogErr) {
 
 /**
  * Should this reduce them all? We're mutating the error?
- * @param  {[type]} middlewares [description]
- * @param  {[type]} ogErr       [description]
- * @return {[type]}             [description]
+ * @param  {array of functions} middlewares - the middlewares to call on ogErr
+ * @param  {Error} ogErr - original gansta error
+ * @return {Error} the new error, after it has been passed through the middlewares  
  */
 function executeSyncMiddleware(middlewares, ogErr) {
 	return middlewares.reduce( (err, middleware) => {
