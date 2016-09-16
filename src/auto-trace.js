@@ -26,12 +26,12 @@ export function removeAllGlobalMiddlewares(){
  * @param {Object} rawError
  * @returns {Error}
  */
-export function asyncStacktrace(callback = ()=>{}) {
+export function asyncStacktrace(callback = ()=>{}, extraContext) {
 	const asyncStacktraceErr = new Error();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
-		const err = wrapObjectWithError(rawError, asyncStacktraceErr)
+		const err = wrapObjectWithError(rawError, asyncStacktraceErr, extraContext)
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, err);
 		callback(middlewareErr);
 	};	
@@ -47,12 +47,12 @@ export function asyncStacktrace(callback = ()=>{}) {
  * @param {Object} rawError
  * @returns {Error}
  */
-export function throwAsyncStacktrace() {
+export function throwAsyncStacktrace(extraContext) {
 	const asyncStacktraceErr = new Error();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
-		const err = wrapObjectWithError(rawError, asyncStacktraceErr)
+		const err = wrapObjectWithError(rawError, asyncStacktraceErr, extraContext)
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, err);
 		throw middlewareErr;
 	};	

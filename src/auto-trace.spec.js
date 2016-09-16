@@ -34,6 +34,12 @@ describe('auto-trace.js', () => {
 			autoTrace.asyncStacktrace(callback)(err);
 			expect(callback).toHaveBeenCalledWith(err);
 		});
+		it('should wrap non-errors in errors and attach extraContext', () => {
+			const callback = jasmine.createSpy('callback');
+			const extraContext = {info: 'Lookout', user: {id:32, name:'Oli'}};
+			autoTrace.asyncStacktrace(callback, extraContext)('non-error');
+			expect(callback).toHaveBeenCalledWith(Error(`non-error Extra Context: {"info":"Lookout","user":{"id":32,"name":"Oli"}}`));
+		});
 		it('should call middlewares with async and sync errs', () => {
 			const callbackSpy = jasmine.createSpy();
 			const err = new Error('error');
@@ -106,6 +112,10 @@ describe('auto-trace.js', () => {
 		it('should throw without wrapping errors', () => {
 			const err = new Error('error');
 			expect( () => autoTrace.throwAsyncStacktrace()(err)).toThrow(err);
+		});
+		it('should wrap non-errors in errors and attach extraContext', () => {
+			const extraContext = {info: 'Lookout', user: {id:32, name:'Oli'}};
+			expect(() => autoTrace.throwAsyncStacktrace(extraContext)('non-error')).toThrow(Error(`non-error Extra Context: {"info":"Lookout","user":{"id":32,"name":"Oli"}}`));
 		});
 		it('should call middleware with async and sync error then throw', () => {
 			const err = new Error('error');
@@ -258,7 +268,7 @@ describe('auto-trace.js', () => {
 		it('should wrap non-errors in errors and throw', () => {
 			expect( () => autoTrace.throwSyncStacktrace('non-error') ).toThrow(Error('non-error'));
 		});
-		it('should throw without re-wraping errors', () => {
+		it('should throw without re-wrapping errors', () => {
 			const err = new Error('error');
 			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(err);
 		});
