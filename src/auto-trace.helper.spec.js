@@ -1,4 +1,4 @@
-import { wrapObjectWithError } from './auto-trace.helper.js';
+import { wrapObjectWithError, appendExtraContext } from './auto-trace.helper.js';
 
 describe('auto-trace.js', () => {
 
@@ -24,6 +24,23 @@ describe('auto-trace.js', () => {
 			expect(result.stack).toEqual(stacktraceErr.stack);
 			expect(result.stack).not.toEqual(err.stack);
 
+		});
+	});
+
+	describe('appendExtraContext', () => {
+		it('should return the error untouched if no extraContext is provided', () => {
+			const err = new Error("Something went wrong!")
+			expect(appendExtraContext(err)).toBe(err);
+		});
+		it('should append extraContext to error message', () => {
+			const err = new Error("Something went wrong!")
+			const extraContext = `Here's more info`;
+			expect(appendExtraContext(err, extraContext)).toEqual(Error(`Something went wrong! Extra Context: Here's more info`));
+		});
+		it('should append extraContext to error message', () => {
+			const err = new Error("Something went wrong!")
+			const extraContext = {userid: 23, moreInfo:'junk'};
+			expect(appendExtraContext(err, extraContext)).toEqual(Error(`Something went wrong! Extra Context: {"userid":23,"moreInfo":"junk"}`));
 		});
 	});
 
