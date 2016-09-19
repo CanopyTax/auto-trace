@@ -54,7 +54,7 @@ export function throwAsyncStacktrace(extraContext) {
 	return (rawError) => {
 		const err = wrapObjectWithError(rawError, asyncStacktraceErr, extraContext)
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, err);
-		throw middlewareErr;
+		setTimeout(() => {throw middlewareErr});
 	};	
 }
 
@@ -86,7 +86,7 @@ export function throwSyncStacktrace(rawError) {
 	const syncErr = wrapObjectWithError(rawError);
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncErr);
 	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr)
-	throw middlewareErr;
+	setTimeout(() => {throw middlewareErr});
 }
 
 /**
