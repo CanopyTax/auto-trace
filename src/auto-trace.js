@@ -31,9 +31,9 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
-		const err = wrapObjectWithError(rawError, asyncStacktraceErr, extraContext)
-		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, err);
-		callback(middlewareErr);
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
+		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
+		callback(errOut);
 	};	
 }
 
@@ -52,9 +52,9 @@ export function throwAsyncStacktrace(extraContext) {
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
-		const err = wrapObjectWithError(rawError, asyncStacktraceErr, extraContext)
-		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, err);
-		setTimeout(() => {throw middlewareErr});
+		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
+		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
+		setTimeout(() => {throw errOut});
 	};	
 }
 
@@ -67,10 +67,11 @@ export function throwAsyncStacktrace(extraContext) {
  * @returns {Error}
  */
 export function syncStacktrace(rawError) {
-	const syncErr = wrapObjectWithError(rawError)
-	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncErr);
-	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr)
-	return middlewareErr;
+	const syncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
+	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
+	const syncErr = wrapObjectWithError(middlewareErr)
+	return syncErr;
 }
 
 /**
@@ -83,10 +84,11 @@ export function syncStacktrace(rawError) {
  * @throws {Error}
  */
 export function throwSyncStacktrace(rawError) {
-	const syncErr = wrapObjectWithError(rawError);
-	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncErr);
-	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, syncErr)
-	setTimeout(() => {throw middlewareErr});
+	const syncStacktraceErr = new Error();
+	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
+	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
+	const syncErr = wrapObjectWithError(middlewareErr)
+	setTimeout(() => {throw syncErr});
 }
 
 /**
