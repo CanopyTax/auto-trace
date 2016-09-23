@@ -87,12 +87,15 @@ Looking for more useful information about your errors? Wish you had the data fro
 ###addGlobalMiddleware(middlewareFn)
 Adds global middleware function that will be called on all autoTrace errors. 
 
-Middlewares must be of the form `asyncErr => syncErr => errToReturn`
+Middlewares must be of the form `asyncErr => syncRawErr => errToReturn`
+`asyncErr` is an Error object with the Async stacktrace
+`syncRawErr` is the rawError passed to the handler, this could be any type of object (make sure to preform a type check).
+`errToReturn` will passed as the syncRawErr to the next middleware, and finaly wrapped in an error object (if needed) and thrown (or passed into a callback). 
 
 ###removeAllGlobalMiddlewares()
 Deletes all global middleware functions.  
 
-####Middleware Example
+####Middleware Examples
 Let's say you want to record how long it takes for a request to fail. This requires context surrounding when the error was created and when the error was thrown.
 
 ```js
@@ -100,7 +103,7 @@ const middleware = asyncErr => {
   const startTime = new Date();
   return syncErr => {
     const errorTime = new Date() - startTime;
-    syncErr.message += ' - time to fail: ' + errorTime;
+    syncErr.message = (syncErr.message || '') + ' -TimeToFail: ' + errorTime;
     return syncErr;
   }
 }
@@ -109,12 +112,15 @@ addGlobalMiddleware(middleware);
 ```
 Resource File
 ```js
+
+const extraContext = '-More info';
+
 return $http
   .get()
   .then()
   .catch(throwAsyncStacktrace(extraContext))
 ```
-This will create Error: `{message: 'original error message - time to fail: 10s', trace: ...}`
+This will create Error: `{message: 'original error message -TimeToFail: 10s -More info', trace: ...}`
 
 #installation
 `npm install auto-trace`
