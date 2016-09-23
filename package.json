@@ -1,6 +1,6 @@
 {
   "name": "auto-trace",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A library that fixes all your stack trace problems.",
   "main": "lib/auto-trace.js",
   "scripts": {
