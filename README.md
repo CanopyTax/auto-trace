@@ -88,9 +88,9 @@ Looking for more useful information about your errors? Wish you had the data fro
 Adds global middleware function that will be called on all autoTrace errors. 
 
 Middlewares must be of the form `asyncErr => syncRawErr => errToReturn`
-`asyncErr` is an Error object with the Async stacktrace
-`syncRawErr` is the rawError passed to the handler, this could be any type of object (make sure to preform a type check).
-`errToReturn` will passed as the syncRawErr to the next middleware, and finaly wrapped in an error object (if needed) and thrown (or passed into a callback). 
+- `asyncErr` is an Error object with the Async stacktrace
+- `syncRawErr` is the rawError passed to the handler, this could be any type of object (make sure to preform a type check).
+- `errToReturn` will passed as the syncRawErr to the next middleware, and finaly wrapped in an error object (if needed) and thrown (or passed into a callback). 
 
 ###removeAllGlobalMiddlewares()
 Deletes all global middleware functions.  
