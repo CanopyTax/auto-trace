@@ -7,12 +7,18 @@
  */
 export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 	let errOut;
-	if (err instanceof Error){
+	if (err && err.autoTraceIgnore){
+		//Don't modify stacktrace on errors that have already been handled by auto-trace
+		errOut = err;
+	}
+	else if (err instanceof Error){
 		errOut = stacktraceErr || err;
 		errOut.message = err.message;
+		errOut.autoTraceIgnore = true;
 	} 
 	else {
 		errOut = stacktraceErr || new Error();
+		errOut.autoTraceIgnore = true;
 		try {
 			if (typeof err === "string"){
 				errOut.message = err;

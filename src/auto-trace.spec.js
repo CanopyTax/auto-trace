@@ -69,6 +69,31 @@ describe('auto-trace.js', () => {
 			expect(expectedAsyncError).toEqual(expectedAsyncError);
 			expect(expectedSyncError).toEqual(expectedSyncError);
 		});
+
+		it('should not call sync middlewares when autoTraceIgnore is set', () => {
+			const callbackSpy = jasmine.createSpy();
+			const err = new Error('error');
+			err.autoTraceIgnore = true;
+
+			let outputAsyncError;
+			let outputSyncError;
+			//Add new middleware
+			middlewareFun = asyncErr => {
+				outputAsyncError = new Error('async');
+				return syncErr => {
+					outputSyncError = new Error('sync');
+					return syncErr;
+				}
+			}
+			autoTrace.removeAllGlobalMiddlewares();
+			autoTrace.addGlobalMiddleware(middlewareFun);
+
+			autoTrace.asyncStacktrace(callbackSpy)(err);
+			expect(callbackSpy).toHaveBeenCalledWith(err);
+			expect(outputAsyncError).toEqual(Error('async')); //Can't avoid calling this
+			expect(outputSyncError).toEqual(undefined);
+
+		});
 		it('should apply multiple middlewares and modify the error accordingly', () => {
 			const callbackSpy = jasmine.createSpy();
 			const err = new Error('error');
@@ -476,7 +501,7 @@ describe('auto-trace.js', () => {
 			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(Error('error 1a 1b 2a 2b 3a 3b'));
 		});
 	});
-	
+
 	describe('logSyncStacktrace', () => {
 		it('should throw a new error where none is given', (done) => {
 

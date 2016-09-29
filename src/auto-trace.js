@@ -149,6 +149,10 @@ function executeAsyncMiddleware(asyncErr) {
  * @return {Error} the new error, after it has been passed through the middlewares
  */
 function executeSyncMiddleware(middlewares, ogErr) {
+	//Don't run middlewares on errors that have already been handled by auto-trace
+	if (ogErr && ogErr.autoTraceIgnore){
+		return ogErr
+	}
 	return middlewares.reduce( (syncErr, middleware) => {
 		if(typeof middleware === 'function'){
 			return middleware(syncErr);
