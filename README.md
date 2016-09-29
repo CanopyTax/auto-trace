@@ -58,6 +58,13 @@ return $http
   .catch(throwAsyncStacktrace({state: 'extra info'}))
 ```
 
+###logAsyncStacktrace(extraContext)
+Same behavior as `throwAsyncStacktrace` except it uses `setTimeout(() => {throw err})` to throw the error. 
+
+The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app). 
+
+This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error. 
+
 ##Synchronous Stack-Trace
 In the case of http requests, the synchronous stacktrace is the stacktrace as the request is response comes in. This is the normal, but less useful, stack-trace included by response errors. Often this trace follows the application function that serviced the request. 
 
@@ -81,6 +88,13 @@ return $http
   .catch(throwSyncStacktrace)
 ```
 
+###logSyncStacktrace(extraContext)
+Same behavior as `throwSyncStacktrace` except it uses `setTimeout(() => {throw err})` to throw the error. 
+
+The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app). 
+
+This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error. 
+
 ## Middleware
 Looking for more useful information about your errors? Wish you had the data from both parts of the error life cycle. Look no further! Middlewares allow you to create higher order functions that will execute in both life cycle contexts.
 
@@ -90,7 +104,7 @@ Adds global middleware function that will be called on all autoTrace errors.
 Middlewares must be of the form `asyncErr => syncRawErr => errToReturn`
 - `asyncErr` is an Error object with the Async stacktrace
 - `syncRawErr` is the rawError passed to the handler, this could be any type of object (make sure to perform a type check).
-- `errToReturn` will passed as the syncRawErr to the next middleware, and finaly wrapped in an error object (if needed) and thrown (or passed into a callback). 
+- `errToReturn` will passed as the syncRawErr to the next middleware, and finally wrapped in an error object (if needed) and thrown (or passed into a callback). 
 
 ###removeAllGlobalMiddlewares()
 Deletes all global middleware functions.  
