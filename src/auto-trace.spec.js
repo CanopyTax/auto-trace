@@ -233,6 +233,7 @@ describe('auto-trace.js', () => {
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(jasmine.any(Error));
+				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -243,6 +244,7 @@ describe('auto-trace.js', () => {
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(Error('non-error'));
+				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -254,6 +256,7 @@ describe('auto-trace.js', () => {
 			
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(err);
+				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -265,6 +268,7 @@ describe('auto-trace.js', () => {
 			
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(Error(`non-error Extra Context: {"info":"Lookout","user":{"id":32,"name":"Oli"}}`));
+				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -276,6 +280,7 @@ describe('auto-trace.js', () => {
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(err);
 				expect(foo.middlewareSpy).toHaveBeenCalledWith(err, err);
+				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -507,6 +512,7 @@ describe('auto-trace.js', () => {
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(jasmine.any(Error));
+				expect(ex.stack.indexOf('logSyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -516,6 +522,7 @@ describe('auto-trace.js', () => {
 		it('should wrap non-errors in errors and throw', (done) => {
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(Error('non-error'));
+				expect(ex.stack.indexOf('logSyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
@@ -526,6 +533,7 @@ describe('auto-trace.js', () => {
 			const err = new Error('error');
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(err);
+				expect(ex.stack.indexOf('logSyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);

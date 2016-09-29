@@ -1,24 +1,33 @@
-import { wrapObjectWithError, appendExtraContext } from './auto-trace.helper.js';
+import { wrapObjectWithError, appendExtraContext, removeAutoTraceFromErrorStack } from './auto-trace.helper.js';
 
 describe('auto-trace.js', () => {
 
 	describe('wrapObjectWithError', () => {
 		it('should create a new error where none is given', () => {
 			const err = wrapObjectWithError();
+
+			//should wrap with error
 			expect(err).toEqual(jasmine.any(Error));
+			
+			//should set autoTraceIgnore to true
 			expect(err.autoTraceIgnore).toEqual(true);
+
+			//Should not contain wrapObjectWithError in stack trace	
+			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 		it('should wraps non-errors in errors', () => {
 			const err = wrapObjectWithError('non-error');
 			expect(err).toEqual(jasmine.any(Error));
 			expect(err.message).toEqual('non-error');
 			expect(err.autoTraceIgnore).toEqual(true);
+			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 		it('should not re-warp errors', () => {
 			const err = new Error('error');
 			const result = wrapObjectWithError(err);
 			expect(result).toBe(err);
 			expect(result.autoTraceIgnore).toEqual(true);
+			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 		it('should ignore errors already handled by autoTrace', () => {
 			const err = wrapObjectWithError({message: 'non-error', autoTraceIgnore: true});
@@ -38,6 +47,7 @@ describe('auto-trace.js', () => {
 			expect(result.stack).toEqual(stacktraceErr.stack);
 			expect(result.stack).not.toEqual(err.stack);
 			expect(result.autoTraceIgnore).toEqual(true);
+			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 	});
 
@@ -55,6 +65,42 @@ describe('auto-trace.js', () => {
 			const err = new Error("Something went wrong!")
 			const extraContext = {userid: 23, moreInfo:'junk'};
 			expect(appendExtraContext(err, extraContext)).toEqual(Error(`Something went wrong! Extra Context: {"userid":23,"moreInfo":"junk"}`));
+		});
+	});
+
+	describe('removeAutoTraceFromErrorStack', () => {
+		it('should replace instances of AsyncStacktrace', () => {
+			const err = new Error('err');
+			err.stack = `Error
+    at AsyncStacktrace (src/auto-trace.helper.js:21:29)
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+    		const expectedStack = `Error
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
+		});
+		it('should replace instances of wrapObjectWithError and AsyncStacktrace', () => {
+			const err = new Error('err');
+			err.stack = `Error
+    at wrapObjectWithError (src/auto-trace.helper.js:21:29)
+    at AsyncStacktrace (src/auto-trace.helper.js:21:29)
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+    		const expectedStack = `Error
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
+		});
+		it('should replace leave non-AutoTrace error stacks untouched', () => {
+			const err = new Error('err');
+			err.stack = `Error
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+    		const expectedStack = `Error
+    at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
+    at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
+			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
 		});
 	});
 

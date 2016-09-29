@@ -15,10 +15,12 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 		errOut = stacktraceErr || err;
 		errOut.message = err.message;
 		errOut.autoTraceIgnore = true;
+		errOut = removeAutoTraceFromErrorStack(errOut);
 	} 
 	else {
 		errOut = stacktraceErr || new Error();
 		errOut.autoTraceIgnore = true;
+		errOut = removeAutoTraceFromErrorStack(errOut);
 		try {
 			if (typeof err === "string"){
 				errOut.message = err;
@@ -63,4 +65,16 @@ export function appendExtraContext(error, extraContext){
 	}
 
 	return errOut
+}
+
+/**
+ * Removes auto-trace from the error stack
+ * @param  {Error} err 
+ * @return {Error}     
+ */
+export function removeAutoTraceFromErrorStack(err){
+	if(err instanceof Error){
+		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
+	}
+	return err;
 }
