@@ -109,6 +109,101 @@ describe('auto-trace.js', () => {
 	});
 
 	describe('throwAsyncStacktrace', () => {
+		it('should create a new error where none is given then throw', () => {
+			expect( () => autoTrace.throwAsyncStacktrace()()).toThrow(jasmine.any(Error));
+		});
+		it('should wrap non-errors in errors then throw', () => {
+			expect( () => autoTrace.throwAsyncStacktrace()('non-error')).toThrow(Error('non-error'));
+		});
+		it('should throw without wrapping errors', () => {
+			const err = new Error('error');
+			expect( () => autoTrace.throwAsyncStacktrace()(err)).toThrow(err);
+		});
+		it('should wrap non-errors in errors and attach extraContext', () => {
+			const extraContext = {info: 'Lookout', user: {id:32, name:'Oli'}};
+			expect(() => autoTrace.throwAsyncStacktrace(extraContext)('non-error')).toThrow(Error(`non-error Extra Context: {"info":"Lookout","user":{"id":32,"name":"Oli"}}`));
+		});
+		it('should call middleware with async and sync error then throw', () => {
+			const err = new Error('error');
+			expect(() => autoTrace.throwAsyncStacktrace()(err)).toThrow(err);
+			expect(foo.middlewareSpy).toHaveBeenCalledWith(err, err);
+		});
+		it('should middlewares should execute for both async and sync errors', () => {
+			const err = new Error('error');
+			const expectedAsyncError = new Error('async');
+			const expectedSyncError = new Error('sync');
+			let outputAsyncError;
+			let outputSyncError;
+			//Add new middleware
+			const middlewareFunc = asyncErr => {
+				outputAsyncError = new Error('async');
+				return syncErr => {
+					outputSyncError = new Error('sync');
+					return syncErr;
+				}
+			}
+			autoTrace.removeAllGlobalMiddlewares();
+			autoTrace.addGlobalMiddleware(middlewareFunc);
+
+			expect(() => autoTrace.throwAsyncStacktrace()(err)).toThrow(err)
+			expect(expectedAsyncError).toEqual(expectedAsyncError);
+			expect(expectedSyncError).toEqual(expectedSyncError);
+		});
+		it('should apply multiple middlewares to error then throw', () => {
+			const err = new Error('error');
+			
+			//Add second middleware
+			const foo2 = {
+				middlewareSpy: (asyncErr, syncErr) => {
+					return syncErr;
+				}
+			}
+			spyOn(foo2, 'middlewareSpy').and.callThrough();
+			const middlewareFun2 = (asyncErr) => foo2.middlewareSpy.bind(null, asyncErr);
+
+			autoTrace.addGlobalMiddleware(middlewareFun2);
+
+			expect(() => autoTrace.throwAsyncStacktrace()(err)).toThrow(err);
+			expect(foo.middlewareSpy).toHaveBeenCalledWith(err, err);
+			expect(foo2.middlewareSpy).toHaveBeenCalledWith(err, err);
+		});
+		it('should apply multiple middlewares and modify the error accordingly', () => {
+			const err = new Error('error');
+
+			//Add new middleware
+			const middlewareFunc1 = asyncErr => {
+				const msg1 = '1a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 1b`
+					return outputSyncError;
+				}
+			}
+			const middlewareFunc2 = asyncErr => {
+				const msg1 = '2a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 2b`
+					return outputSyncError;
+				}
+			}
+			const middlewareFunc3 = asyncErr => {
+				const msg1 = '3a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 3b`
+					return outputSyncError;
+				}
+			}
+			autoTrace.addGlobalMiddleware(middlewareFunc1);
+			autoTrace.addGlobalMiddleware(middlewareFunc2);
+			autoTrace.addGlobalMiddleware(middlewareFunc3);
+
+			expect( () => autoTrace.throwAsyncStacktrace()(err)).toThrow(Error('error 1a 1b 2a 2b 3a 3b'));
+		});
+	});
+	
+	describe('logAsyncStacktrace', () => {
 		it('should create a new error where none is given then throw', (done) => {
 
 			errorCatcher = (ex) => {
@@ -117,7 +212,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace()();
+			autoTrace.logAsyncStacktrace()();
 		});
 		it('should wrap non-errors in errors then throw', (done) => {
 
@@ -127,7 +222,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace()('non-error');
+			autoTrace.logAsyncStacktrace()('non-error');
 		});
 		it('should throw without wrapping errors', (done) => {
 			const err = new Error('error');
@@ -138,7 +233,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace()(err)
+			autoTrace.logAsyncStacktrace()(err)
 		});
 		it('should wrap non-errors in errors and attach extraContext', (done) => {
 			const extraContext = {info: 'Lookout', user: {id:32, name:'Oli'}};
@@ -149,7 +244,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace(extraContext)('non-error');
+			autoTrace.logAsyncStacktrace(extraContext)('non-error');
 		});
 		it('should call middleware with async and sync error then throw', (done) => {
 			const err = new Error('error');
@@ -160,7 +255,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace()(err);
+			autoTrace.logAsyncStacktrace()(err);
 		});
 		it('should execute middlewares for both async and sync errors', (done) => {
 			const err = new Error('error');
@@ -187,7 +282,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwAsyncStacktrace()(err);
+			autoTrace.logAsyncStacktrace()(err);
 		});
 		it('should apply multiple middlewares to error then throw', (done) => {
 			const err = new Error('error');
@@ -212,7 +307,7 @@ describe('auto-trace.js', () => {
 			process.on('uncaughtException', errorCatcher);
 
 
-			autoTrace.throwAsyncStacktrace()(err);
+			autoTrace.logAsyncStacktrace()(err);
 		});
 		it('should apply multiple middlewares and modify the error accordingly', (done) => {
 			const err = new Error('error');
@@ -252,7 +347,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 			
-			autoTrace.throwAsyncStacktrace()(err);
+			autoTrace.logAsyncStacktrace()(err);
 		});
 	});
 	
@@ -321,6 +416,68 @@ describe('auto-trace.js', () => {
 	});
 
 	describe('throwSyncStacktrace', () => {
+		it('should throw a new error where none is given', () => {
+			expect(() => autoTrace.throwSyncStacktrace()).toThrow(jasmine.any(Error));
+		});
+		it('should wrap non-errors in errors and throw', () => {
+			expect( () => autoTrace.throwSyncStacktrace('non-error') ).toThrow(Error('non-error'));
+		});
+		it('should throw without re-wrapping errors', () => {
+			const err = new Error('error');
+			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(err);
+		});
+		it('should apply a single extraMiddleware to error', () => {
+			const err = new Error('error');
+
+			//Add new middleware
+			const middlewareFunc = asyncErr => {
+				const msg1 = '1';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 2`
+					return outputSyncError;
+				}
+			}
+			autoTrace.addGlobalMiddleware(middlewareFunc);
+			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(Error('error 1 2'));
+		});
+		it('should apply multiple middlewares and modify the error accordingly', () => {
+			const err = new Error('error');
+
+			//Add new middleware
+			const middlewareFunc1 = asyncErr => {
+				const msg1 = '1a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 1b`
+					return outputSyncError;
+				}
+			}
+			const middlewareFunc2 = asyncErr => {
+				const msg1 = '2a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 2b`
+					return outputSyncError;
+				}
+			}
+			const middlewareFunc3 = asyncErr => {
+				const msg1 = '3a';
+				return syncErr => {
+					const outputSyncError = syncErr;
+					outputSyncError.message += ` ${msg1} 3b`
+					return outputSyncError;
+				}
+			}
+			autoTrace.addGlobalMiddleware(middlewareFunc1);
+			autoTrace.addGlobalMiddleware(middlewareFunc2);
+			autoTrace.addGlobalMiddleware(middlewareFunc3);
+
+			expect( () => autoTrace.throwSyncStacktrace(err) ).toThrow(Error('error 1a 1b 2a 2b 3a 3b'));
+		});
+	});
+	
+	describe('logSyncStacktrace', () => {
 		it('should throw a new error where none is given', (done) => {
 
 			errorCatcher = (ex) => {
@@ -329,7 +486,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwSyncStacktrace();
+			autoTrace.logSyncStacktrace();
 		});
 		it('should wrap non-errors in errors and throw', (done) => {
 			errorCatcher = (ex) => {
@@ -338,7 +495,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwSyncStacktrace('non-error');
+			autoTrace.logSyncStacktrace('non-error');
 		});
 		it('should throw without re-wrapping errors', (done) => {
 			const err = new Error('error');
@@ -348,7 +505,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwSyncStacktrace(err);
+			autoTrace.logSyncStacktrace(err);
 		});
 		it('should apply a single extraMiddleware to error', (done) => {
 			const err = new Error('error');
@@ -370,7 +527,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwSyncStacktrace(err);
+			autoTrace.logSyncStacktrace(err);
 		});
 		it('should apply multiple middlewares and modify the error accordingly', (done) => {
 			const err = new Error('error');
@@ -410,7 +567,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.throwSyncStacktrace(err);
+			autoTrace.logSyncStacktrace(err);
 		});
 	});
 
