@@ -4,7 +4,7 @@ A library that fixes all your stack trace problems.
 This library helps transform garbage errors into beautiful objects filled with insight and understanding. This is especially useful for apps that use an error reporting service such as bug-snag or sentry.
 
 - Provide a meaningful Stack Trace (for optimum error blameage)
-- Prevent irresponsible throwing of Non-Error objects
+- Prevent irresponsible throwing of Non-Error objects (which result in `Error:[object Object]`)
 - Attach extra context to errors
 - Encourage a consistent pattern for error handling
 
