@@ -12,11 +12,11 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 		errOut = err;
 	}
 	else if (err instanceof Error){
-		errOut = stacktraceErr || err;
-		errOut.message = err.message;
+		errOut = err;
+		errOut.stack = stacktraceErr ? stacktraceErr.stack : errOut.stack;
 		errOut.autoTraceIgnore = true;
 		errOut = removeAutoTraceFromErrorStack(errOut);
-	} 
+	}
 	else {
 		errOut = stacktraceErr || new Error();
 		errOut.autoTraceIgnore = true;
@@ -40,14 +40,14 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 
 /**
  * Appends extraContext to the end of the error description. error will not be modified if no extraContext is provided.
- * 
+ *
  * @param  {Error} error 			Error to modify
  * @param  {Object} extraContext  	String or Object to stringify and append to the error message
  * @return {Error} 					Error with extraContext
  */
 export function appendExtraContext(error, extraContext){
 	const errOut = error;
-	
+
 	if (extraContext === null || extraContext === undefined){
 		return errOut;
 	}
@@ -69,8 +69,8 @@ export function appendExtraContext(error, extraContext){
 
 /**
  * Removes auto-trace from the error stack
- * @param  {Error} err 
- * @return {Error}     
+ * @param  {Error} err
+ * @return {Error}
  */
 export function removeAutoTraceFromErrorStack(err){
 	if(err instanceof Error){

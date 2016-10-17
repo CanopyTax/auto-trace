@@ -8,11 +8,11 @@ describe('auto-trace.js', () => {
 
 			//should wrap with error
 			expect(err).toEqual(jasmine.any(Error));
-			
+
 			//should set autoTraceIgnore to true
 			expect(err.autoTraceIgnore).toEqual(true);
 
-			//Should not contain wrapObjectWithError in stack trace	
+			//Should not contain wrapObjectWithError in stack trace
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 		it('should wraps non-errors in errors', () => {
@@ -45,7 +45,6 @@ describe('auto-trace.js', () => {
 			expect(result).toEqual(jasmine.any(Error));
 			expect(result.message).toEqual('original error message');
 			expect(result.stack).toEqual(stacktraceErr.stack);
-			expect(result.stack).not.toEqual(err.stack);
 			expect(result.autoTraceIgnore).toEqual(true);
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
