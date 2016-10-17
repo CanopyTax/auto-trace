@@ -34,7 +34,7 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
 		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
 		callback(errOut);
-	};	
+	};
 }
 
 /**
@@ -55,20 +55,20 @@ export function throwAsyncStacktrace(extraContext) {
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
 		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
 		throw errOut;
-	};	
+	};
 }
 
 /**
  * Wraps rawError in an Error object (if typeOf rawError != Error) using the async stacktrace
  * Calls globalMiddleware functions on rawError before wrapping in Error object
- * Behaves exactly as throwAsyncStacktrace, but throws an error inside of setTimeout 
+ * Behaves exactly as throwAsyncStacktrace, but throws an error inside of setTimeout
  * In most cases the async stacktrace is most useful - it contains the stacktrace before switching context to caller timeout
  *
  * @param {function (Object err) => Object newErr } [callback] - function that will be called with the error
  * @param {Object} rawError
  * @returns {Error}
  */
-export function logAsyncStacktrace(extraContext) {
+export function catchAsyncStacktrace(extraContext) {
 	const asyncStacktraceErr = new Error();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
@@ -76,7 +76,7 @@ export function logAsyncStacktrace(extraContext) {
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
 		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
 		setTimeout(() => {throw errOut});
-	};	
+	};
 }
 
 /**

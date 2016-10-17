@@ -242,52 +242,52 @@ describe('auto-trace.js', () => {
 		});
 	});
 
-	describe('logAsyncStacktrace', () => {
+	describe('catchAsyncStacktrace', () => {
 		it('should create a new error where none is given then throw', (done) => {
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(jasmine.any(Error));
-				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
+				expect(ex.stack.indexOf('catchAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()();
+			autoTrace.catchAsyncStacktrace()();
 		});
 		it('should wrap non-errors in errors then throw', (done) => {
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(Error('non-error'));
-				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
+				expect(ex.stack.indexOf('catchAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()('non-error');
+			autoTrace.catchAsyncStacktrace()('non-error');
 		});
 		it('should throw without wrapping errors', (done) => {
 			const err = new Error('error');
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(err);
-				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
+				expect(ex.stack.indexOf('catchAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()(err)
+			autoTrace.catchAsyncStacktrace()(err)
 		});
 		it('should wrap non-errors in errors and attach extraContext', (done) => {
 			const extraContext = {info: 'Lookout', user: {id:32, name:'Oli'}};
 
 			errorCatcher = (ex) => {
 				expect(ex).toEqual(Error(`non-error Extra Context: {"info":"Lookout","user":{"id":32,"name":"Oli"}}`));
-				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
+				expect(ex.stack.indexOf('catchAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace(extraContext)('non-error');
+			autoTrace.catchAsyncStacktrace(extraContext)('non-error');
 		});
 		it('should call middleware with async and sync error then throw', (done) => {
 			const err = new Error('error');
@@ -295,12 +295,12 @@ describe('auto-trace.js', () => {
 				expect(ex).toEqual(err);
 				expect(callSync).toBe(true);
 				expect(callAsync).toBe(true);
-				expect(ex.stack.indexOf('logAsyncStacktrace')).toEqual(-1);
+				expect(ex.stack.indexOf('catchAsyncStacktrace')).toEqual(-1);
 				done();
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()(err);
+			autoTrace.catchAsyncStacktrace()(err);
 		});
 		it('should execute middlewares for both async and sync errors', (done) => {
 			const err = new Error('error');
@@ -327,7 +327,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()(err);
+			autoTrace.catchAsyncStacktrace()(err);
 		});
 		it('should apply multiple middlewares to error then throw', (done) => {
 			const err = new Error('error');
@@ -353,7 +353,7 @@ describe('auto-trace.js', () => {
 			process.on('uncaughtException', errorCatcher);
 
 
-			autoTrace.logAsyncStacktrace()(err);
+			autoTrace.catchAsyncStacktrace()(err);
 		});
 		it('should apply multiple middlewares and modify the error accordingly', (done) => {
 			const err = new Error('error');
@@ -393,7 +393,7 @@ describe('auto-trace.js', () => {
 			};
 			process.on('uncaughtException', errorCatcher);
 
-			autoTrace.logAsyncStacktrace()(err);
+			autoTrace.catchAsyncStacktrace()(err);
 		});
 	});
 
