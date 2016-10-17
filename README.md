@@ -58,7 +58,7 @@ return $http
   .catch(throwAsyncStacktrace({state: 'extra info'}))
 ```
 
-###catchAsyncStacktrace(extraContent)
+###catchAsyncStacktrace(extraContext)
 Same behavior as `throwAsyncStacktrace` except it uses `setTimeout(() => {throw err})` to throw the error.
 
 The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app).
