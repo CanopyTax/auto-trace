@@ -61,7 +61,7 @@ This is especially helpful when working in angular land - as throwing an error w
 return $http
   .get()
   .then()
-  .catch(throwAsyncStacktrace({state: 'extra info'}))
+  .catch(catchAsyncStacktrace({state: 'extra info'}))
 ```
 
 ###throwAsyncStacktrace(extraContext)
@@ -80,7 +80,7 @@ return $http
   .catch(syncStacktrace)
 ```
 
-###throwSyncStacktrace
+###catchSyncStacktrace
 First order function, will wrap caught response in an error object that contains the asynchronous stacktrace and throw the wrapped error. This should be passed (not called) as a function into the catch statement (see example).
 
 This function uses `setTimeout(() => {throw err})` to throw the error.
@@ -93,7 +93,7 @@ This is especially helpful when working in angular land - as throwing an error w
 return $http
   .get()
   .then()
-  .catch(throwSyncStacktrace)
+  .catch(catchSyncStacktrace)
 ```
 
 ###throwSyncStacktrace
