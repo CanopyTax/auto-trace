@@ -40,7 +40,7 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
 /**
  * Wraps rawError in an Error object (if typeOf rawError != Error) using the async stacktrace
  * Calls globalMiddleware functions on rawError before wrapping in Error object
- * Behaves exactly as throwAsyncStacktrace, but throws an error inside of setTimeout
+ * Behaves exactly as asyncStacktrace, but throws the error object instead of returning.
  * In most cases the async stacktrace is most useful - it contains the stacktrace before switching context to caller timeout
  *
  * @param {function (Object err) => Object newErr } [callback] - function that will be called with the error
