@@ -59,13 +59,6 @@ export function catchAsyncStacktrace(extraContext) {
 }
 
 /**
- * Alias for catchAsyncStacktrace
- */
-export function throwAsyncStacktrace(extraContext){
-	return catchAsyncStacktrace(extraContext);
-}
-
-/**
  * Wraps rawError in an Error object (if typeOf rawError != Error) using the default stacktrace
  * Calls globalMiddleware functions on rawError before wrapping in Error object
  * sync stacktrace contains the stacktrace after switching context to caller timeout
@@ -96,13 +89,6 @@ export function catchSyncStacktrace(rawError) {
 	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
 	const syncErr = wrapObjectWithError(middlewareErr)
 	setTimeout(() => {throw syncErr});
-}
-
-/**
- * Alias for catchSyncStacktrace
- */
-export function throwSyncStacktrace(rawError) {
-	return catchSyncStacktrace(rawError);
 }
 
 /**

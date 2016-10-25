@@ -64,9 +64,6 @@ return $http
   .catch(catchAsyncStacktrace({state: 'extra info'}))
 ```
 
-###throwAsyncStacktrace(extraContext)
-Same behavior as `catchAsyncStacktrace`
-
 ##Synchronous Stack-Trace
 In the case of http requests, the synchronous stacktrace is the stacktrace as the request is response comes in. This is the normal, but less useful, stack-trace included by response errors. Often this trace follows the application function that serviced the request.
 
@@ -95,9 +92,6 @@ return $http
   .then()
   .catch(catchSyncStacktrace)
 ```
-
-###throwSyncStacktrace
-Same behavior as `catchSyncStacktrace`
 
 ## Middleware
 Looking for more useful information about your errors? Wish you had the data from both parts of the error life cycle. Look no further! Middlewares allow you to create higher order functions that will execute in both life cycle contexts.
