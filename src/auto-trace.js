@@ -47,27 +47,6 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
  * @param {Object} rawError
  * @returns {Error}
  */
-export function throwAsyncStacktrace(extraContext) {
-	const asyncStacktraceErr = new Error();
-	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
-
-	return (rawError) => {
-		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
-		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
-		throw errOut;
-	};
-}
-
-/**
- * Wraps rawError in an Error object (if typeOf rawError != Error) using the async stacktrace
- * Calls globalMiddleware functions on rawError before wrapping in Error object
- * Behaves exactly as throwAsyncStacktrace, but throws an error inside of setTimeout
- * In most cases the async stacktrace is most useful - it contains the stacktrace before switching context to caller timeout
- *
- * @param {function (Object err) => Object newErr } [callback] - function that will be called with the error
- * @param {Object} rawError
- * @returns {Error}
- */
 export function catchAsyncStacktrace(extraContext) {
 	const asyncStacktraceErr = new Error();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
@@ -104,24 +83,7 @@ export function syncStacktrace(rawError) {
  * @param {Object} rawError
  * @throws {Error}
  */
-export function throwSyncStacktrace(rawError) {
-	const syncStacktraceErr = new Error();
-	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
-	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
-	const syncErr = wrapObjectWithError(middlewareErr)
-	throw syncErr;
-}
-
-/**
- * Wraps rawError in an Error object (if typeOf rawError != Error) using the default stacktrace
- * Calls globalMiddleware functions on rawError before wrapping in Error object
- * Behaves exactly as syncStacktrace, but throws the error object instead of returning.
- * sync stacktrace contains the stacktrace after switching context to caller timeout
- *
- * @param {Object} rawError
- * @throws {Error}
- */
-export function logSyncStacktrace(rawError) {
+export function catchSyncStacktrace(rawError) {
 	const syncStacktraceErr = new Error();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
 	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)

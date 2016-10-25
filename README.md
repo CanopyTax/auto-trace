@@ -47,23 +47,22 @@ return $http
   .catch(asyncStacktrace(callback, {state: 'extra info'}))
 ```
 
-###throwAsyncStacktrace(extraContext)
-Returns a function that will wrap caught response in an error object that contains the asynchronous stacktrace. Will append `extraContext` and throw the wrapped error. This should be called as a function so that return value function will be passed into the catch statement.
+###catchAsyncStacktrace(extraContext)
+Returns a function that will wrap caught response in an error object that contains the asynchronous stacktrace. Will append `extraContext` and throw the wrapped error. This should be called as a function so that return value function will be passed into the catch statement (see example).
 - `extraContext` (optional) String or Object that will be stringified and appended to the error message
+
+This function uses `setTimeout(() => {throw err})` to throw the error.
+
+The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app).
+
+This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error.
 
 ```js
 return $http
   .get()
   .then()
-  .catch(throwAsyncStacktrace({state: 'extra info'}))
+  .catch(catchAsyncStacktrace({state: 'extra info'}))
 ```
-
-###catchAsyncStacktrace(extraContext)
-Same behavior as `throwAsyncStacktrace` except it uses `setTimeout(() => {throw err})` to throw the error.
-
-The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app).
-
-This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error.
 
 ##Synchronous Stack-Trace
 In the case of http requests, the synchronous stacktrace is the stacktrace as the request is response comes in. This is the normal, but less useful, stack-trace included by response errors. Often this trace follows the application function that serviced the request.
@@ -78,22 +77,21 @@ return $http
   .catch(syncStacktrace)
 ```
 
-###throwSyncStacktrace
-First order function, will wrap caught response in an error object that contains the asynchronous stacktrace and throw the wrapped error. This should be passed (not called) as a function into the catch statement.
+###catchSyncStacktrace
+First order function, will wrap caught response in an error object that contains the asynchronous stacktrace and throw the wrapped error. This should be passed (not called) as a function into the catch statement (see example).
+
+This function uses `setTimeout(() => {throw err})` to throw the error.
+
+The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app).
+
+This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error.
 
 ```js
 return $http
   .get()
   .then()
-  .catch(throwSyncStacktrace)
+  .catch(catchSyncStacktrace)
 ```
-
-###logSyncStacktrace(extraContext)
-Same behavior as `throwSyncStacktrace` except it uses `setTimeout(() => {throw err})` to throw the error.
-
-The error will be caught be window.onerror and can be logged by reporting services like sentry and bugsnag, but will not disrupt normal code execution (and cannot be caught elsewhere within the app).
-
-This is especially helpful when working in angular land - as throwing an error within a promise catch handler will cause a `rootScope:digest` Error.
 
 ## Middleware
 Looking for more useful information about your errors? Wish you had the data from both parts of the error life cycle. Look no further! Middlewares allow you to create higher order functions that will execute in both life cycle contexts.
