@@ -178,5 +178,10 @@ describe('auto-trace.js', () => {
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
 		});
+		it('should not cause and error if err.stack is undefined', () => {
+			const err = new Error('err');
+			err.stack = undefined;
+			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(undefined);
+		});
 	});
 });
