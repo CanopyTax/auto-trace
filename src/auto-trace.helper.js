@@ -73,7 +73,7 @@ export function appendExtraContext(error, extraContext){
  * @return {Error}
  */
 export function removeAutoTraceFromErrorStack(err){
-	if(err instanceof Error){
+	if(err instanceof Error && typeof err.stack === "string"){
 		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
 	}
 	return err;
