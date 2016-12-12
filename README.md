@@ -13,14 +13,14 @@ Resource File
 return $http
   .get()
   .then()
-  .catch(throwAsyncStacktrace(extraContext))
+  .catch(catchAsyncStacktrace(extraContext))
 ```
 
 Observable
 ```js
 return observable
   .then()
-  .catch(throwAsyncStacktrace(extraContext))
+  .catch(catchAsyncStacktrace(extraContext))
 ```
 
 ## Error Life cycle
