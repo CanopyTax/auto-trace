@@ -85,7 +85,7 @@ export function removeAutoTraceFromErrorStack(err){
 			 */
 			const lines = err.stack.split('\n');
 			if (lines.length > 0 && lines[0] === 'Error') {
-				err.stack = err.stack.replace('Error\n', 'Error: ' + err.message + '\n');
+				err.stack = err.stack.replace('Error\n', `Error: ${err.message}\n`);
 			}
 		}
 	}
