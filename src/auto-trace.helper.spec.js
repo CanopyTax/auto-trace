@@ -75,7 +75,7 @@ describe('auto-trace.js', () => {
     at AsyncStacktrace (src/auto-trace.helper.js:21:29)
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error
+    		const expectedStack = `Error: err
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
@@ -86,7 +86,7 @@ describe('auto-trace.js', () => {
     at AsyncStacktrace (src/auto-trace.helper.js:21:29)
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error
+    		const expectedStack = `Error: err
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
@@ -173,7 +173,7 @@ describe('auto-trace.js', () => {
 			err.stack = `Error
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error
+    		const expectedStack = `Error: err
     at Object.<anonymous> (src/auto-trace.helper.spec.js:12:16)
     at attemptSync (/Users/keith/dev/auto-trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
