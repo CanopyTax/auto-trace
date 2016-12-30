@@ -75,6 +75,19 @@ export function appendExtraContext(error, extraContext){
 export function removeAutoTraceFromErrorStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
 		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
+		if (err.message) {
+			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
+			 * err.stack. Since auto-trace does fancy manipulation of which stack an error has, and what it
+			 * looks like, a lot of time error objects for async stacktraces end up not having the error message
+			 * inside of the err.stack. This results in `catchAsyncStacktrace()` calls printing unhelpful things
+			 * to the console, where it just says `Error` instead of `Error: this is the message`. We correct this
+			 * by manually changing the stack to have the error message in it.
+			 */
+			const lines = err.stack.split('\n');
+			if (lines.length > 0 && lines[0] === 'Error') {
+				err.stack = err.stack.replace('Error\n', 'Error: ' + err.message + '\n');
+			}
+		}
 	}
 	return err;
 }
