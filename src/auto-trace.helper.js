@@ -20,7 +20,6 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 	else {
 		errOut = stacktraceErr || new Error();
 		errOut.autoTraceIgnore = true;
-		errOut = removeAutoTraceFromErrorStack(errOut);
 		try {
 			if (typeof err === "string"){
 				errOut.message = err;
@@ -33,6 +32,7 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 			console.warn('auto-trace: You are trying to throw something that cannot be stringified', ex);
 			errOut.message = err;
 		}
+		errOut = removeAutoTraceFromErrorStack(errOut);
 	}
 
 	return appendExtraContext(errOut, extraContext);
