@@ -25,6 +25,7 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 				errOut.message = err;
 			}
 			else {
+				errOut.originalErrorObject = err;
 				errOut.message = JSON.stringify(err);
 			}
 		}
