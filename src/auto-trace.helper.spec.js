@@ -15,10 +15,18 @@ describe('auto-trace.js', () => {
 			//Should not contain wrapObjectWithError in stack trace
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
-		it('should wraps non-errors in errors', () => {
+		it('should wrap non-errors in errors', () => {
 			const err = wrapObjectWithError('non-error');
 			expect(err).toEqual(jasmine.any(Error));
 			expect(err.message).toEqual('non-error');
+			expect(err.autoTraceIgnore).toEqual(true);
+			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
+		});
+		it('should wrap non-errors objects in errors', () => {
+			const err = wrapObjectWithError({test: 'testing'});
+			expect(err).toEqual(jasmine.any(Error));
+			expect(err.message).toEqual(JSON.stringify({test: 'testing'}));
+			expect(err.originalErrorObject).toEqual({test: 'testing'});
 			expect(err.autoTraceIgnore).toEqual(true);
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
