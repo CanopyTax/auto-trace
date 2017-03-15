@@ -33,7 +33,7 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
 	return (rawError) => {
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
 		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
-		callback(errOut);
+		return callback(errOut);
 	};
 }
 

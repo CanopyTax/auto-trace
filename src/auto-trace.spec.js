@@ -141,6 +141,17 @@ describe('auto-trace.js', () => {
 			customError.customProperty = true;
 			errCallback(customError);
 		});
+		it('should return the value returned by the callback', () => {
+			var expectedResult;
+			var errCallback = autoTrace.asyncStacktrace(err => {
+				expectedResult = err;
+				return err;
+			});
+			var customError = new Error('Custom message');
+			customError.customProperty = true;
+			const actualResult = errCallback(customError);
+			expect(actualResult).toBe(expectedResult);
+		});
 	});
 
 	describe('catchAsyncStacktrace', () => {
