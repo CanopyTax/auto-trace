@@ -13,10 +13,11 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 	}
 	else if (err instanceof Error){
 		errOut = err;
-		const  extraStacktrace = asyncErr ? asyncErr.stack.replace('Error\n', '\nauto-trace Async stacktrace:\n') : '';
+		const extraStacktrace = asyncErr ? asyncErr.stack.replace('Error\n', '\nauto-trace Async stacktrace:\n') : '';
 		const extraFrames = extraStacktrace.split('\n');
-		/* I started to use Array.prototype.findIndex, but realized it isn't supported in IE11 and didn't want to require
-		 * everyone using auto-trace to polyfill it. So this is the poor man's impl.
+		/* We want to alter the stacktrace so that the human reading it can distinguish where the sync stacktrace ends and the
+		 * async stacktrace begins. I started implementation with Array.prototype.findIndex, but realized it isn't supported in IE11
+		 * and didn't want to require everyone using auto-trace to polyfill it. So this is the poor man's impl.
 		 */
 		for (let i=0; i<extraFrames.length; i++) {
 			if (extraFrames[i].indexOf('at') >= 0) {
