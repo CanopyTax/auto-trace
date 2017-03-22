@@ -2,10 +2,10 @@
  * Wraps err in an Error object (if typeOf rawError != Error)
  *
  * @param {Object} [err]
- * @param {Error}  [stacktraceErr] - Optional error containing the desired stacktrace
- * @returns {Error} with stacktrace from stacktraceErr (if provided)
+ * @param {Error}  [asyncErr] - Optional error containing the desired stacktrace
+ * @returns {Error} with stacktrace from asyncErr (if provided)
  */
-export function wrapObjectWithError(err, stacktraceErr, extraContext) {
+export function wrapObjectWithError(err, asyncErr, extraContext) {
 	let errOut;
 	if (err && err.autoTraceIgnore){
 		//Don't modify stacktrace on errors that have already been handled by auto-trace
@@ -13,12 +13,25 @@ export function wrapObjectWithError(err, stacktraceErr, extraContext) {
 	}
 	else if (err instanceof Error){
 		errOut = err;
-		errOut.stack = stacktraceErr ? stacktraceErr.stack : errOut.stack;
+		const  extraStacktrace = asyncErr ? asyncErr.stack.replace('Error\n', '\nauto-trace Async stacktrace:\n') : '';
+		const extraFrames = extraStacktrace.split('\n');
+		/* I started to use Array.prototype.findIndex, but realized it isn't supported in IE11 and didn't want to require
+		 * everyone using auto-trace to polyfill it. So this is the poor man's impl.
+		 */
+		for (let i=0; i<extraFrames.length; i++) {
+			if (extraFrames[i].indexOf('at') >= 0) {
+				extraFrames[i] = '  at AUTO TRACE ASYNC: ' + extraFrames[i];
+				// Only do this one time
+				break;
+			}
+		}
+		const  originalFrames = extraStacktrace.split('\n');
+		errOut.stack = originalFrames.slice(0, 25).join('\n') + extraFrames.slice(0, 25).join('\n');
 		errOut.autoTraceIgnore = true;
 		errOut = removeAutoTraceFromErrorStack(errOut);
 	}
 	else {
-		errOut = stacktraceErr || new Error();
+		errOut = asyncErr || new Error();
 		errOut.autoTraceIgnore = true;
 		try {
 			if (typeof err === "string"){
