@@ -48,11 +48,15 @@ describe('auto-trace.js', () => {
 		});
 		it('should return error with message from first param and stacktrace of second param', () => {
 			const err = new Error('original error message');
-			const stacktraceErr = new Error('Stacktrace error message');
-			const result = wrapObjectWithError(err, stacktraceErr);
+			const asyncErr = new Error('Stacktrace error message');
+			const result = wrapObjectWithError(err, asyncErr);
 			expect(result).toEqual(jasmine.any(Error));
 			expect(result.message).toEqual('original error message');
-			expect(result.stack).toEqual(stacktraceErr.stack);
+
+			// It should have the stacktraces from both the err and the asyncErr
+			expect(result.stack.indexOf(asyncErr.stack)).toBeGreaterThan(-1);
+			expect(result.stack.indexOf(err.stack)).toBeGreaterThan(-1);
+
 			expect(result.autoTraceIgnore).toEqual(true);
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
