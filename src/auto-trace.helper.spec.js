@@ -60,6 +60,31 @@ describe('auto-trace.js', () => {
 			expect(result.autoTraceIgnore).toEqual(true);
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
+		it('should store sync and async stack traces', () => {
+			const err = new Error('My error message will be preserved');
+			err.stack = `Error: My sync error message will be preserved
+	at catchAsyncStacktrace(/global-settings.js:1929:28)
+	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
+	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
+	at Array.forEach(<anonymous>)`;
+			const asyncErr = new Error('My error message will live on in the stack');
+			asyncErr.stack = `Error: My async error message will live on in the stack
+	at catchAsyncStacktrace(./node_modules/auto-trace/lib/auto-trace.js:67:0)
+	at SigningModal._this.createOrGetSigningExperience(./src/signing-modal.component.js:110:4)
+	at createOrGetSigningExperience(./src/signing-modal.component.js:77:7)
+	at closeAll(../jspm_packages/npm/react-dom@15.5.4/lib/Transaction.js:153:15)`
+			const result = wrapObjectWithError(err, asyncErr);
+			const expectedStackTrace = `Error: My async error message will live on in the stack
+	at SigningModal._this.createOrGetSigningExperience(./src/signing-modal.component.js:110:4)
+	at createOrGetSigningExperience(./src/signing-modal.component.js:77:7)
+	at closeAll(../jspm_packages/npm/react-dom@15.5.4/lib/Transaction.js:153:15)
+  at AUTO TRACE SYNC: Error: My sync error message will be preserved
+	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
+	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
+	at Array.forEach(<anonymous>)`;
+			expect(result.stack).toEqual(expectedStackTrace);
+			expect(result.message).toEqual(`My error message will be preserved`);
+		});
 	});
 
 	describe('appendExtraContext', () => {
@@ -178,6 +203,32 @@ describe('auto-trace.js', () => {
   at apply (../jspm_packages/npm/lodash@4.13.1/lodash.js:413:4)
   at f (../jspm_packages/npm/lodash@4.13.1/lodash.js:4836:8)
   at fancyUpdateAnswer (../src/source-forms/questions/question.component.js:77:3)`;
+			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
+		});
+		it('should remove self regardless of the file', () => {
+			//IE and Edge docs - https://msdn.microsoft.com/en-us/library/windows/apps/hh699850.aspx
+			const err = new Error('err');
+			err.stack = `Error: it broke
+	at catchAsyncStacktrace(/global-settings.js:1929:28)
+	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
+	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
+	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
+	at invokeGuardedCallback(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:85:20)
+	at executeDispatch(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:108:4)
+	at executeDispatchesInOrder(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:43:21)
+	at executeDispatchesAndRelease(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:54:9)
+	at Array.forEach(<anonymous>)
+	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
+			const expectedStack = `Error: it broke
+	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
+	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
+	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
+	at invokeGuardedCallback(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:85:20)
+	at executeDispatch(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:108:4)
+	at executeDispatchesInOrder(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:43:21)
+	at executeDispatchesAndRelease(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:54:9)
+	at Array.forEach(<anonymous>)
+	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
 		});
 		it('should replace leave non-AutoTrace error stacks untouched', () => {

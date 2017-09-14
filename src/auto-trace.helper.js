@@ -14,21 +14,10 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 	else if (err instanceof Error){
 		errOut = err;
 		if(asyncErr && typeof asyncErr.stack === "string"){
-			const extraStacktrace = asyncErr.stack.replace('Error\n', '\nauto-trace Async stacktrace:\n');
-			const extraFrames = extraStacktrace.split('\n');
-			/* We want to alter the stacktrace so that the human reading it can distinguish where the sync stacktrace ends and the
-			 * async stacktrace begins. I started implementation with Array.prototype.findIndex, but realized it isn't supported in IE11
-			 * and didn't want to require everyone using auto-trace to polyfill it. So this is the poor man's impl.
-			 */
-			for (let i=0; i<extraFrames.length; i++) {
-				if (extraFrames[i].indexOf('at') >= 0) {
-					extraFrames[i] = '  at AUTO TRACE ASYNC: ' + extraFrames[i];
-					// Only do this one time
-					break;
-				}
-			}
-			const  originalFrames = extraStacktrace.split('\n');
-			errOut.stack = originalFrames.slice(0, 25).join('\n') + extraFrames.slice(0, 25).join('\n');
+			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + removeAutoTraceFromErrorStack(err).stack;
+			const syncFrames = syncStacktrace.split('\n');
+			const asyncFrames = asyncErr.stack.split('\n');
+			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
 		errOut = removeAutoTraceFromErrorStack(errOut);
@@ -91,7 +80,7 @@ export function appendExtraContext(error, extraContext){
  */
 export function removeAutoTraceFromErrorStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
-		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
+		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*/g,'');
 		if (err.message) {
 			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
 			 * err.stack. Since auto-trace does fancy manipulation of which stack an error has, and what it
