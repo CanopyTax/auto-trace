@@ -14,9 +14,9 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 	else if (err instanceof Error){
 		errOut = err;
 		if(asyncErr && typeof asyncErr.stack === "string"){
+			const asyncFrames = asyncErr.stack.split('\n');
 			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + removeAutoTraceFromErrorStack(err).stack;
 			const syncFrames = syncStacktrace.split('\n');
-			const asyncFrames = asyncErr.stack.split('\n');
 			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
