@@ -61,13 +61,13 @@ describe('auto-trace.js', () => {
 			expect(err.stack.indexOf('wrapObjectWithError')).toEqual(-1);
 		});
 		it('should store sync and async stack traces', () => {
-			const err = new Error('My error message will be preserved');
+			const err = new Error('My sync error message will be preserved');
 			err.stack = `Error: My sync error message will be preserved
 	at catchAsyncStacktrace(/global-settings.js:1929:28)
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at Array.forEach(<anonymous>)`;
-			const asyncErr = new Error('My error message will live on in the stack');
+			const asyncErr = new Error('My async error message will live on in the stack');
 			asyncErr.stack = `Error: My async error message will live on in the stack
 	at catchAsyncStacktrace(./node_modules/auto-trace/lib/auto-trace.js:67:0)
 	at SigningModal._this.createOrGetSigningExperience(./src/signing-modal.component.js:110:4)
@@ -83,7 +83,7 @@ describe('auto-trace.js', () => {
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at Array.forEach(<anonymous>)`;
 			expect(result.stack).toEqual(expectedStackTrace);
-			expect(result.message).toEqual(`My error message will be preserved`);
+			expect(result.message).toEqual(`My sync error message will be preserved`);
 		});
 	});
 
