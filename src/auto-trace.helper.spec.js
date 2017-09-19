@@ -63,12 +63,14 @@ describe('auto-trace.js', () => {
 		it('should store sync and async stack traces', () => {
 			const err = new Error('My sync error message will be preserved');
 			err.stack = `Error: My sync error message will be preserved
+  at wrapObjectWithError(./node_modules/auto-trace/lib/auto-trace.helper.js:23:0)
 	at catchAsyncStacktrace(/global-settings.js:1929:28)
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at Array.forEach(<anonymous>)`;
 			const asyncErr = new Error('My async error message will live on in the stack');
 			asyncErr.stack = `Error: My async error message will live on in the stack
+	at wrapObjectWithError(./node_modules/auto-trace/lib/auto-trace.helper.js:23:0)
 	at catchAsyncStacktrace(./node_modules/auto-trace/lib/auto-trace.js:67:0)
 	at SigningModal._this.createOrGetSigningExperience(./src/signing-modal.component.js:110:4)
 	at createOrGetSigningExperience(./src/signing-modal.component.js:77:7)
@@ -79,6 +81,7 @@ describe('auto-trace.js', () => {
 	at createOrGetSigningExperience(./src/signing-modal.component.js:77:7)
 	at closeAll(../jspm_packages/npm/react-dom@15.5.4/lib/Transaction.js:153:15)
   at AUTO TRACE SYNC: Error: My sync error message will be preserved
+	at catchAsyncStacktrace(/global-settings.js:1929:28)
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at Array.forEach(<anonymous>)`;
@@ -205,7 +208,7 @@ describe('auto-trace.js', () => {
   at fancyUpdateAnswer (../src/source-forms/questions/question.component.js:77:3)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
 		});
-		it('should remove self regardless of the file', () => {
+		it('should not remove the invoker call of catchAsyncStacktrace', () => {
 			//IE and Edge docs - https://msdn.microsoft.com/en-us/library/windows/apps/hh699850.aspx
 			const err = new Error('err');
 			err.stack = `Error: it broke
@@ -213,21 +216,12 @@ describe('auto-trace.js', () => {
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
-	at invokeGuardedCallback(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:85:20)
-	at executeDispatch(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:108:4)
-	at executeDispatchesInOrder(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:43:21)
-	at executeDispatchesAndRelease(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:54:9)
-	at Array.forEach(<anonymous>)
 	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
 			const expectedStack = `Error: it broke
+	at catchAsyncStacktrace(/global-settings.js:1929:28)
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
-	at invokeGuardedCallback(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:85:20)
-	at executeDispatch(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginUtils.js:108:4)
-	at executeDispatchesInOrder(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:43:21)
-	at executeDispatchesAndRelease(../jspm_packages/npm/react-dom@15.5.4/lib/EventPluginHub.js:54:9)
-	at Array.forEach(<anonymous>)
 	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
 			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
 		});

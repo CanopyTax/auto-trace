@@ -80,7 +80,7 @@ export function appendExtraContext(error, extraContext){
  */
 export function removeAutoTraceFromErrorStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
-		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*/g,'');
+		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
 		if (err.message) {
 			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
 			 * err.stack. Since auto-trace does fancy manipulation of which stack an error has, and what it
