@@ -30,12 +30,12 @@ There are two parts to the error life cycle
 
 These events do not always occur at the same time. $http is an example of this. Since $http makes an async request, an error stacktrace will contain the call stack of the invoker as the request comes in (this is the syncStacktrace). Often the more useful stacktrace is the call stack as the request went out `Controller->Service->Resource` (this is the asyncStacktrace).
 
-#API
+# API
 
-##Asynchronous Stack-Trace
+## Asynchronous Stack-Trace
 The asynchronous stacktrace is often the most useful, in the case of http requests, this is the stacktrace as the request is going out.
 
-###asyncStacktrace(callback, extraContext)
+### asyncStacktrace(callback, extraContext)
 Returns a function that will wrap the caught response in an error object that contains the asynchronous stacktrace. Will append `extraContext` and call callback with wrapped error. This should be called as a function so that return value function will be passed into the catch statement.
 - `callback` (optional) function that will be called with the wrapped error
 - `extraContext` (optional) String or Object that will be stringified and appended to the error message
@@ -47,7 +47,7 @@ return $http
   .catch(asyncStacktrace(callback, {state: 'extra info'}))
 ```
 
-###catchAsyncStacktrace(extraContext)
+### catchAsyncStacktrace(extraContext)
 Returns a function that will wrap caught response in an error object that contains the asynchronous stacktrace. Will append `extraContext` and throw the wrapped error. This should be called as a function so that return value function will be passed into the catch statement (see example).
 - `extraContext` (optional) String or Object that will be stringified and appended to the error message
 
@@ -64,10 +64,10 @@ return $http
   .catch(catchAsyncStacktrace({state: 'extra info'}))
 ```
 
-##Synchronous Stack-Trace
+## Synchronous Stack-Trace
 In the case of http requests, the synchronous stacktrace is the stacktrace as the request is response comes in. This is the normal, but less useful, stack-trace included by response errors. Often this trace follows the application function that serviced the request.
 
-###syncStacktrace
+### syncStacktrace
 First order function, will wrap caught response in an error object that contains the asynchronous stacktrace and return the wrapped error. This should be passed (not called) as a function into the catch statement.
 
 ```js
@@ -77,7 +77,7 @@ return $http
   .catch(syncStacktrace)
 ```
 
-###catchSyncStacktrace
+### catchSyncStacktrace
 First order function, will wrap caught response in an error object that contains the asynchronous stacktrace and throw the wrapped error. This should be passed (not called) as a function into the catch statement (see example).
 
 This function uses `setTimeout(() => {throw err})` to throw the error.
@@ -96,7 +96,7 @@ return $http
 ## Middleware
 Looking for more useful information about your errors? Wish you had the data from both parts of the error life cycle. Look no further! Middlewares allow you to create higher order functions that will execute in both life cycle contexts.
 
-###addGlobalMiddleware(middlewareFn)
+### addGlobalMiddleware(middlewareFn)
 Adds global middleware function that will be called on all autoTrace errors.
 
 Middlewares must be of the form `asyncErr => syncRawErr => errToReturn`
@@ -104,10 +104,10 @@ Middlewares must be of the form `asyncErr => syncRawErr => errToReturn`
 - `syncRawErr` is the rawError passed to the handler, this could be any type of object (make sure to perform a type check).
 - `errToReturn` will passed as the syncRawErr to the next middleware, and finally wrapped in an error object (if needed) and thrown (or passed into a callback).
 
-###removeAllGlobalMiddlewares()
+### removeAllGlobalMiddlewares()
 Deletes all global middleware functions.
 
-####Middleware Examples
+#### Middleware Examples
 Let's say you want to record how long it takes for a request to fail. This requires context surrounding when the error was created and when the error was thrown.
 
 ```js
@@ -137,5 +137,5 @@ return $http
 ```
 This will create Error: `{message: 'original error message -TimeToFail: 10s -More info', trace: ...}`
 
-#installation
+# installation
 `npm install auto-trace`
