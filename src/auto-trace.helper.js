@@ -15,15 +15,14 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 		errOut = err;
 		if(asyncErr && typeof asyncErr.stack === "string"){
 			const asyncFrames = asyncErr.stack.split('\n');
-			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + removeAutoTraceFromErrorStack(err).stack;
+			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + err.stack;
 			const syncFrames = syncStacktrace.split('\n');
 			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
-		errOut = removeAutoTraceFromErrorStack(errOut);
 	}
 	else {
-		errOut = asyncErr || new Error();
+		errOut = asyncErr || createError(2);
 		errOut.autoTraceIgnore = true;
 		try {
 			if (typeof err === "string"){
@@ -38,7 +37,6 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 			console.warn('auto-trace: You are trying to throw something that cannot be stringified', ex);
 			errOut.message = err;
 		}
-		errOut = removeAutoTraceFromErrorStack(errOut);
 	}
 
 	return appendExtraContext(errOut, extraContext);
@@ -73,14 +71,22 @@ export function appendExtraContext(error, extraContext){
 	return errOut
 }
 
+export function createError(framesToRemove = 1){
+	const error = new Error();
+	//We remove an extra frame since this function will create a frame as well
+	const newStack = error.stack.split('\n');
+	newStack.splice(1,framesToRemove+1);
+	error.stack = newStack.join('\n');
+	return error;
+}
+
 /**
- * Removes auto-trace from the error stack
+ * Adds error message to the error stack string
  * @param  {Error} err
  * @return {Error}
  */
-export function removeAutoTraceFromErrorStack(err){
+export function addErrorMessageToStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
-		err.stack = err.stack.replace(/\n.*(yncStacktrace|wrapObjectWithError|\(.*auto-trace).*/g,'');
 		if (err.message) {
 			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
 			 * err.stack. Since auto-trace does fancy manipulation of which stack an error has, and what it

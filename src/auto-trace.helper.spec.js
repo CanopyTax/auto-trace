@@ -1,4 +1,4 @@
-import { wrapObjectWithError, appendExtraContext, removeAutoTraceFromErrorStack } from './auto-trace.helper.js';
+import { wrapObjectWithError, appendExtraContext } from './auto-trace.helper.js';
 
 describe('auto-trace.js', () => {
 
@@ -69,15 +69,11 @@ describe('auto-trace.js', () => {
 		it('should store sync and async stack traces', () => {
 			const err = new Error('My sync error message will be preserved');
 			err.stack = `Error: My sync error message will be preserved
-  at wrapObjectWithError(./node_modules/trace/lib/trace.helper.js:23:0)
-	at catchAsyncStacktrace(/global-settings.js:1929:28)
 	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
 	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
 	at Array.forEach(<anonymous>)`;
 			const asyncErr = new Error('My async error message will live on in the stack');
 			asyncErr.stack = `Error: My async error message will live on in the stack
-	at wrapObjectWithError(./node_modules/trace/lib/trace.helper.js:23:0)
-	at catchAsyncStacktrace(./node_modules/trace/lib/trace.js:67:0)
 	at SigningModal._this.createOrGetSigningExperience(./src/signing-modal.component.js:110:4)
 	at createOrGetSigningExperience(./src/signing-modal.component.js:77:7)
 	at closeAll(../jspm_packages/npm/react-dom@15.5.4/lib/Transaction.js:153:15)`
@@ -109,124 +105,6 @@ describe('auto-trace.js', () => {
 			const err = new Error("Something went wrong!")
 			const extraContext = {userid: 23, moreInfo:'junk'};
 			expect(appendExtraContext(err, extraContext)).toEqual(Error(`Something went wrong! Extra Context: {"userid":23,"moreInfo":"junk"}`));
-		});
-	});
-
-	describe('removeAutoTraceFromErrorStack', () => {
-		it('should replace instances of wrapObjectWithError and AsyncStacktrace', () => {
-			const err = new Error('err');
-			err.stack = `Error
-    at wrapObjectWithError (src/trace.helper.js:21:29)
-    at AsyncStacktrace (src/trace.helper.js:21:29)
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error: err
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should work with node stacktrace', () => {
-			const err = new Error('err');
-			err.stack = `Error
-    at AsyncStacktrace (src/trace.helper.js:21:29)
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error: err
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should work with chrome stacktrace', () => {
-			const err = new Error('err');
-			err.stack = `Error: {"code":0,"message":"An unknown error occurred","status":500}
-  at asyncStacktrace(~/trace/lib/trace.js:46:27)
-  at a(./angular/app/admin/sources/sources-settings.component.js:112:28)
-  at fn(eval at compile (https://cdn.canopytax.com/sofe/workflow-ui/v5.1.0-1491-g6f60869/workflow-ui.js), <anonymous>:4:410)
-  at g(~/angular/angular.min.js:126:127)
-  at apply(raven.js:379:28)`;
-    		const expectedStack = `Error: {"code":0,"message":"An unknown error occurred","status":500}
-  at a(./angular/app/admin/sources/sources-settings.component.js:112:28)
-  at fn(eval at compile (https://cdn.canopytax.com/sofe/workflow-ui/v5.1.0-1491-g6f60869/workflow-ui.js), <anonymous>:4:410)
-  at g(~/angular/angular.min.js:126:127)
-  at apply(raven.js:379:28)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should work with firefox stacktrace', () => {
-			//firefox stacktrace docs -  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Stack
-			const err = new Error('err');
-			err.stack = `Error: message
-  at asyncStacktrace(../jspm_packages/npm/trace@2.2.0/lib/trace.js:46:2)
-  at updateAnswer/<(../src/source-forms/answers/answer.actions.js:60:4)
-  at createThunkMiddleware/</</<(../jspm_packages/npm/redux-thunk@2.1.0/lib/index.js:11:10)
-  at func(../jspm_packages/npm/redux@3.5.2/lib/bindActionCreators.js:7:4)
-  at apply(../jspm_packages/npm/lodash@4.13.1/lodash.js:413:4)
-  at executeDispatchesAndRelease(../jspm_packages/npm/react@15.2.1/lib/EventPluginHub.js:44:4)`;
-    		const expectedStack = `Error: message
-  at updateAnswer/<(../src/source-forms/answers/answer.actions.js:60:4)
-  at createThunkMiddleware/</</<(../jspm_packages/npm/redux-thunk@2.1.0/lib/index.js:11:10)
-  at func(../jspm_packages/npm/redux@3.5.2/lib/bindActionCreators.js:7:4)
-  at apply(../jspm_packages/npm/lodash@4.13.1/lodash.js:413:4)
-  at executeDispatchesAndRelease(../jspm_packages/npm/react@15.2.1/lib/EventPluginHub.js:44:4)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should work with IE / Edge stacktrace', () => {
-			//IE and Edge docs - https://msdn.microsoft.com/en-us/library/windows/apps/hh699850.aspx
-			const err = new Error('err');
-			err.stack = `Error: message
-  at asyncStacktrace (../jspm_packages/npm/trace@2.2.0/lib/trace.js:46:2)
-  at updateAnswer (../src/source-forms/answers/answer.actions.js:60:4)
-  at createThunkMiddleware (../jspm_packages/npm/redux-thunk@2.1.0/lib/index.js:11:10)
-  at fancyUpdateAnswer (../src/source-forms/questions/question.component.js:77:3)`;
-    		const expectedStack = `Error: message
-  at updateAnswer (../src/source-forms/answers/answer.actions.js:60:4)
-  at createThunkMiddleware (../jspm_packages/npm/redux-thunk@2.1.0/lib/index.js:11:10)
-  at fancyUpdateAnswer (../src/source-forms/questions/question.component.js:77:3)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should remove catchAsyncStacktrace in bundled files', () => {
-			const err = new Error('err');
-			err.stack = `Error: it broke
-	at catchAsyncStacktrace(/global-settings.js:1929:28)
-	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
-	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
-	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
-	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
-			const expectedStack = `Error: it broke
-	at _showMoreLicensesDialog(/4.global-settings.js:428:111)
-	at HTMLUnknownElement.d(/static/raven/raven-3.9.1-d.min.js:2:6222)
-	at dispatchEvent(../jspm_packages/npm/react-dom@15.5.4/lib/ReactErrorUtils.js:69:15)
-	at forEach(../jspm_packages/npm/react-dom@15.5.4/lib/forEachAccumulated.js:24:8)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should remove catchAsyncStacktrace in minnified files', () => {
-			const err = new Error('err');
-			err.stack = `Error: it broke
-  at s(~/auto-trace/lib/auto-trace.js:46:0)
-  at ? (./src/source-forms/source-form-layout.actions.js:31:19)
-  at action(~/redux-thunk/lib/index.js:11:0)
-  at dispatch(./src/source-forms/source-form-for-tax-form.component.js:78:8)
-  at fetchSection(./src/source-forms/source-form-for-tax-form.component.js:122:8)`;
-			const expectedStack = `Error: it broke
-  at ? (./src/source-forms/source-form-layout.actions.js:31:19)
-  at action(~/redux-thunk/lib/index.js:11:0)
-  at dispatch(./src/source-forms/source-form-for-tax-form.component.js:78:8)
-  at fetchSection(./src/source-forms/source-form-for-tax-form.component.js:122:8)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should leave non-AutoTrace error stacks untouched', () => {
-			const err = new Error('err');
-			err.stack = `Error: err
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-    		const expectedStack = `Error: err
-    at Object.<anonymous> (src/trace.helper.spec.js:12:16)
-    at attemptSync (/Users/keith/dev/trace/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)`;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(expectedStack);
-		});
-		it('should not cause and error if err.stack is undefined', () => {
-			const err = new Error('err');
-			err.stack = undefined;
-			expect(removeAutoTraceFromErrorStack(err).stack).toEqual(undefined);
 		});
 	});
 });
