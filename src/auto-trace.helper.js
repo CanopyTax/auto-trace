@@ -20,6 +20,7 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
+		errOut = addErrorMessageToStack(errOut);
 	}
 	else {
 		errOut = asyncErr || createError(2);
@@ -37,6 +38,7 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 			console.warn('auto-trace: You are trying to throw something that cannot be stringified', ex);
 			errOut.message = err;
 		}
+		errOut = addErrorMessageToStack(errOut);
 	}
 
 	return appendExtraContext(errOut, extraContext);
@@ -85,7 +87,7 @@ export function createError(framesToRemove = 1){
  * @param  {Error} err
  * @return {Error}
  */
-export function addErrorMessageToStack(err){
+function addErrorMessageToStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
 		if (err.message) {
 			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
