@@ -17,6 +17,7 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 			const asyncFrames = asyncErr.stack.split('\n');
 			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + err.stack;
 			const syncFrames = syncStacktrace.split('\n');
+			//keep first 25 frames of asyncStacktrace, followed by 25 frames of syncStacktrace
 			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
