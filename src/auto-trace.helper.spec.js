@@ -1,4 +1,4 @@
-import { wrapObjectWithError, appendExtraContext } from './auto-trace.helper.js';
+import { wrapObjectWithError, appendExtraContext, createError } from './auto-trace.helper.js';
 
 describe('auto-trace.js', () => {
 
@@ -106,5 +106,19 @@ describe('auto-trace.js', () => {
 			const extraContext = {userid: 23, moreInfo:'junk'};
 			expect(appendExtraContext(err, extraContext)).toEqual(Error(`Something went wrong! Extra Context: {"userid":23,"moreInfo":"junk"}`));
 		});
+	});
+	describe('createError', () => {
+		it('should create and error and remove 2 lines from stack', () => {
+			const err = createError();
+			expect(err.stack.split('\n').length).toEqual(9);
+		});	
+		it('should create and error and remove 4 lines from stack', () => {
+			const err = createError(3);
+			expect(err.stack.split('\n').length).toEqual(7);
+		});	
+		it('should not remove any frames if the frames to remove count is larger than the total number of frames', () => {
+			const err = createError(100);
+			expect(err.stack.split('\n').length).toEqual(11);
+		});	
 	});
 });

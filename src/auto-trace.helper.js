@@ -73,12 +73,16 @@ export function appendExtraContext(error, extraContext){
 	return errOut
 }
 
-export function createError(framesToRemove = 1){
+//This function creates an error and by default removes two frames from the error stack (to remove this method, and the caller, which will be a function inside auto-trace)
+//Optionaly extraframesToRemove can be specified to remove more frames if the stack trace will contain more auto-trace refrences.
+export function createError(extraframesToRemove = 1){
 	const error = new Error();
 	//We remove an extra frame since this function will create a frame as well
 	const newStack = error.stack.split('\n');
-	newStack.splice(1,framesToRemove+1);
-	error.stack = newStack.join('\n');
+	if (newStack.length > extraframesToRemove+1) {
+		newStack.splice(1,extraframesToRemove+1);
+		error.stack = newStack.join('\n');
+	}
 	return error;
 }
 
