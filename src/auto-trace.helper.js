@@ -14,27 +14,17 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 	else if (err instanceof Error){
 		errOut = err;
 		if(asyncErr && typeof asyncErr.stack === "string"){
-			const extraStacktrace = asyncErr.stack.replace('Error\n', '\nauto-trace Async stacktrace:\n');
-			const extraFrames = extraStacktrace.split('\n');
-			/* We want to alter the stacktrace so that the human reading it can distinguish where the sync stacktrace ends and the
-			 * async stacktrace begins. I started implementation with Array.prototype.findIndex, but realized it isn't supported in IE11
-			 * and didn't want to require everyone using auto-trace to polyfill it. So this is the poor man's impl.
-			 */
-			for (let i=0; i<extraFrames.length; i++) {
-				if (extraFrames[i].indexOf('at') >= 0) {
-					extraFrames[i] = '  at AUTO TRACE ASYNC: ' + extraFrames[i];
-					// Only do this one time
-					break;
-				}
-			}
-			const  originalFrames = extraStacktrace.split('\n');
-			errOut.stack = originalFrames.slice(0, 25).join('\n') + extraFrames.slice(0, 25).join('\n');
+			const asyncFrames = asyncErr.stack.split('\n');
+			const syncStacktrace = '\n  at AUTO TRACE SYNC: ' + err.stack;
+			const syncFrames = syncStacktrace.split('\n');
+			//keep first 25 frames of asyncStacktrace, followed by 25 frames of syncStacktrace
+			errOut.stack = asyncFrames.slice(0, 25).join('\n') + syncFrames.slice(0, 25).join('\n');
 		}
 		errOut.autoTraceIgnore = true;
-		errOut = removeAutoTraceFromErrorStack(errOut);
+		errOut = addErrorMessageToStack(errOut);
 	}
 	else {
-		errOut = asyncErr || new Error();
+		errOut = asyncErr || createError(2);
 		errOut.autoTraceIgnore = true;
 		try {
 			if (typeof err === "string"){
@@ -49,7 +39,7 @@ export function wrapObjectWithError(err, asyncErr, extraContext) {
 			console.warn('auto-trace: You are trying to throw something that cannot be stringified', ex);
 			errOut.message = err;
 		}
-		errOut = removeAutoTraceFromErrorStack(errOut);
+		errOut = addErrorMessageToStack(errOut);
 	}
 
 	return appendExtraContext(errOut, extraContext);
@@ -84,14 +74,27 @@ export function appendExtraContext(error, extraContext){
 	return errOut
 }
 
+//This function creates an error and by default removes two frames from the error stack (to remove this method, and the caller, which will be a function inside auto-trace)
+//Optionally extraFramesToRemove can be specified to remove more frames if the stack trace will contain more auto-trace refrences.
+export function createError(extraFramesToRemove = 1){
+	const error = new Error();
+	//We remove an extra frame since this function will create a frame as well
+	const newStack = error.stack.split('\n');
+	if (newStack.length > extraFramesToRemove+1) {
+		//Starts on line 1 since the 0th line of the stacktrace is the error message (which we don't want to remove)
+		newStack.splice(1, extraFramesToRemove+1);
+		error.stack = newStack.join('\n');
+	}
+	return error;
+}
+
 /**
- * Removes auto-trace from the error stack
+ * Adds error message to the error stack string
  * @param  {Error} err
  * @return {Error}
  */
-export function removeAutoTraceFromErrorStack(err){
+function addErrorMessageToStack(err){
 	if(err instanceof Error && typeof err.stack === "string"){
-		err.stack = err.stack.replace(/\n.*(?:yncStacktrace|wrapObjectWithError) ?\(.*auto-trace.*/g,'');
 		if (err.message) {
 			/* In NodeJS, `throw err` does not print out the err.message, but instead only prints out the
 			 * err.stack. Since auto-trace does fancy manipulation of which stack an error has, and what it

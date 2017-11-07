@@ -1,4 +1,4 @@
-import { wrapObjectWithError } from './auto-trace.helper.js';
+import { wrapObjectWithError, createError } from './auto-trace.helper.js';
 let globalMiddlewares = [];
 
 /**
@@ -27,7 +27,7 @@ export function removeAllGlobalMiddlewares(){
  * @returns {Error}
  */
 export function asyncStacktrace(callback = ()=>{}, extraContext) {
-	const asyncStacktraceErr = new Error();
+	const asyncStacktraceErr = createError();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
@@ -48,12 +48,12 @@ export function asyncStacktrace(callback = ()=>{}, extraContext) {
  * @returns {Error}
  */
 export function catchAsyncStacktrace(extraContext) {
-	const asyncStacktraceErr = new Error();
+	const asyncStacktraceErr = createError();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(asyncStacktraceErr);
 
 	return (rawError) => {
 		const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError);
-		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext)
+		const errOut = wrapObjectWithError(middlewareErr, asyncStacktraceErr, extraContext);
 		setTimeout(() => {throw errOut});
 	};
 }
@@ -67,7 +67,7 @@ export function catchAsyncStacktrace(extraContext) {
  * @returns {Error}
  */
 export function syncStacktrace(rawError) {
-	const syncStacktraceErr = new Error();
+	const syncStacktraceErr = createError();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
 	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
 	const syncErr = wrapObjectWithError(middlewareErr)
@@ -84,7 +84,7 @@ export function syncStacktrace(rawError) {
  * @throws {Error}
  */
 export function catchSyncStacktrace(rawError) {
-	const syncStacktraceErr = new Error();
+	const syncStacktraceErr = createError();
 	const syncMiddlewareErrFunctions = executeAsyncMiddleware(syncStacktraceErr);
 	const middlewareErr = executeSyncMiddleware(syncMiddlewareErrFunctions, rawError)
 	const syncErr = wrapObjectWithError(middlewareErr)
