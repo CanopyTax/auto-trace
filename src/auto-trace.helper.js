@@ -78,7 +78,7 @@ export function appendExtraContext(error, extraContext){
 //Optionally extraFramesToRemove can be specified to remove more frames if the stack trace will contain more auto-trace refrences.
 export function createError(extraFramesToRemove = 1){
 	const error = new Error();
-debugger;
+
 	//error.stack in IE is undefined until the error is thrown
 	if (typeof error.stack === 'string'){
 		//We remove an extra frame since this function will create a frame as well
