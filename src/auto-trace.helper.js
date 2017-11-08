@@ -79,7 +79,7 @@ export function appendExtraContext(error, extraContext){
 export function createError(extraFramesToRemove = 1){
 	const error = new Error();
 
-	//error.stack in IE is not a string
+	//error.stack in IE is set to undefined when the error is first created
 	if (typeof error.stack === 'string'){
 		//We remove an extra frame since this function will create a frame as well
 		const newStack = error.stack.split('\n');
