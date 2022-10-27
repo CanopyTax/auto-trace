@@ -16,13 +16,13 @@ let globalMiddlewares = [];
  *   }))
  */
 export function catchError(callback, extraContext) {
-  return asyncStacktrace((err) => {
+  return asyncStacktrace((error) => {
     if (callback) {
-      callback(err, function throwErr(err) {
-        setTimeout(() => { throw err })
-      }, extraContext)
+      callback(error, function throwError(err) {
+        throw err
+      })
     } else {
-      setTimeout(() => { throw err })
+      throw error
     }
   }, extraContext)
 }
