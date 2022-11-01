@@ -32,6 +32,20 @@ These events do not always occur at the same time. $http is an example of this. 
 
 # API
 
+## catchError
+`catchError` is a wrapper around `asyncStacktrace` which returns a method that will handle error processing and throwing. Pass this as your onError arg in RxJS subscriptions or as a callback in catch.
+
+RxJS Subscription example:
+`myObs.subscribe(onComplete, catchError())`
+
+If a callback is provided then that will be called and the error will have to be thrown manually:
+```
+myObs.subscribe(onComplete, catchError((error, throwError) => {
+  error.showToast = false
+  throwError(error)
+}))
+```
+
 ## Asynchronous Stack-Trace
 The asynchronous stacktrace is often the most useful, in the case of http requests, this is the stacktrace as the request is going out.
 

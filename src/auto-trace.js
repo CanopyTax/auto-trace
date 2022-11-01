@@ -2,6 +2,32 @@ import { wrapObjectWithError, createError } from './auto-trace.helper.js';
 let globalMiddlewares = [];
 
 /**
+ * Returns a method that will handle error processing and throwing. Pass this as your onError arg in RxJS subscriptions.
+ * This is meant to replace all the other catch and stacktrace methods. https://xkcd.com/927/
+ *
+ * RxJS Subscription example:
+ *   myObs.subscribe(onComplete, catchError())
+ *
+ * If a callback is passed then that will be called with the processed error instead of throwing the error.
+ * e.g.
+ *   myObs.subscribe(onComplete, catchError((error, throwError) => {
+ *     error.showToast = false
+ *     throwError(error)
+ *   }))
+ */
+export function catchError(callback, extraContext) {
+  return asyncStacktrace((error) => {
+    if (callback) {
+      callback(error, function throwError(err) {
+        throw err
+      })
+    } else {
+      throw error
+    }
+  }, extraContext)
+}
+
+/**
  * Adds a middleware function that will be called on all errors before being handled by auto-trace
  *
  * @param {function (Object err) => Object newErr } middlewareFn
