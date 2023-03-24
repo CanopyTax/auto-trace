@@ -16,6 +16,10 @@ let globalMiddlewares = [];
  *   }))
  */
 export function catchError(callback, extraContext) {
+  if (callback instanceof Error) {
+    console.warn('catchError must be called before being passed to an onError handler.\nFind any instance of `catchError` and replace with `catchError()`.\nAlso check that an error object is not being passed into catchError as the first parameter should be a function.\n We call catchError to wrap the error with additional information, so the following error might be missing some additional useful context.')
+    throw callback
+  }
   return asyncStacktrace((error) => {
     if (callback) {
       callback(error, function throwError(err) {
